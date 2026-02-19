@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:/../coloresapp.dart';
+import 'package:ja_rating/coloresApp.dart';
 
 class TextFieldAutentificacion extends StatefulWidget {
   final TextEditingController controllerText;
