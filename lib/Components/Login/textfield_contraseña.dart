@@ -42,36 +42,36 @@ class _TextFieldAutentificacionState extends State<TextFieldAutentificacion> {
       validator: widget.validator,
 
       obscureText: _valorEyeToggle && widget.esPassword,
-      obscuringCharacter: "隠",
+      obscuringCharacter: "#",
       controller: widget.controllerText,
       focusNode: widget.focusNode,
 
       style: TextStyle(
-        color: colores.colorTexto,
+        color: Coloresapp.colorTexto,
         fontWeight: FontWeight.bold,
         shadows: [
           Shadow(
-            color: colores.ColorTextoFlojo.withOpacity(0.4),
+            color: Coloresapp.ColorTextoFlojo.withOpacity(0.4),
             blurRadius: 4,
           ),
         ],
       ),
 
-      cursorColor: colores.colorPrimario,
+      cursorColor: Coloresapp.colorPrimario,
       cursorHeight: 24,
       cursorWidth: 2,
 
       decoration: InputDecoration(
-        fillColor: colores.colorFondo,
+        fillColor: Coloresapp.colorFondo,
         filled: true,
 
         hintText: widget.hintText,
         hintStyle: TextStyle(
-          color: colores.ColorTextoFlojo.withOpacity(0.6),
+          color: Coloresapp.ColorTextoFlojo.withOpacity(0.6),
           fontStyle: FontStyle.italic,
           shadows: [
             Shadow(
-              color: colores.ColorTextoFlojo.withOpacity(0.4),
+              color: Coloresapp.ColorTextoFlojo.withOpacity(0.4),
               blurRadius: 4,
             ),
           ],
@@ -80,7 +80,7 @@ class _TextFieldAutentificacionState extends State<TextFieldAutentificacion> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(50)),
           borderSide: BorderSide(
-            color: colores.colorContorno,
+            color: Coloresapp.colorContorno,
             width: 1,
           ),
         ),
@@ -88,7 +88,7 @@ class _TextFieldAutentificacionState extends State<TextFieldAutentificacion> {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(50)),
           borderSide: BorderSide(
-            color: colores.colorPrimario,
+            color: Coloresapp.colorPrimario,
             width: 2,
           ),
         ),
@@ -106,7 +106,7 @@ class _TextFieldAutentificacionState extends State<TextFieldAutentificacion> {
                     _valorEyeToggle
                         ? Icons.visibility_off
                         : Icons.visibility,
-                    color: colores.colorPrimarioAccentuado,
+                    color: Coloresapp.colorPrimarioAccentuado,
                   ),
                 )
               : null,
