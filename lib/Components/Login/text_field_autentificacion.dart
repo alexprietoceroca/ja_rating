@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:ja_rating/coloresapp.dart'; // Cambia esto
+import 'package:ja_rating/coloresapp.dart';
 
 class TextFieldAutentificacion extends StatefulWidget {
   final TextEditingController controllerText;
-  final String hintText;
-  final FocusNode focusNode;
-  final String? Function(String?) validator;
-  final bool esPassword;
   final bool valorInicialOcultarEyeToggle;
+  final bool esPassword;
+  final String hintText;
+  final FocusNode? focusNode;
+  final String? Function(String?)? validator;
 
   const TextFieldAutentificacion({
     super.key,
     required this.controllerText,
+    this.valorInicialOcultarEyeToggle = true,
+    this.esPassword = false,
     required this.hintText,
-    required this.focusNode,
-    required this.validator,
-    required this.esPassword,
-    required this.valorInicialOcultarEyeToggle,
+    this.focusNode,
+    this.validator,
   });
 
   @override
@@ -37,32 +37,32 @@ class _TextFieldAutentificacionState extends State<TextFieldAutentificacion> {
     return TextFormField(
       validator: widget.validator,
       obscureText: _valorEyeToggle && widget.esPassword,
-      obscuringCharacter: "隠",
+      obscuringCharacter: "*",
       controller: widget.controllerText,
       focusNode: widget.focusNode,
       style: TextStyle(
-        color: Coloresapp.colorTexto, // Cambia esto
+        color: Coloresapp.colorTexto,
         fontWeight: FontWeight.bold,
         shadows: [
           Shadow(
-            color: Coloresapp.ColorTextoFlojo.withOpacity(0.4), // Cambia esto
+            color: Coloresapp.colorTextoFlojo.withOpacity(0.4),
             blurRadius: 4,
           ),
         ]
       ),
-      cursorColor: Coloresapp.colorPrimario, // Cambia esto
+      cursorColor: Coloresapp.colorPrimario,
       cursorHeight: 24,
       cursorWidth: 2,
       decoration: InputDecoration(
-        fillColor: Coloresapp.colorFondo, // Cambia esto
+        fillColor: Coloresapp.colorFondo,
         filled: true,
         hintText: widget.hintText,
         hintStyle: TextStyle(
-          color: Coloresapp.ColorTextoFlojo.withOpacity(0.6), // Cambia esto
+          color: Coloresapp.colorTextoFlojo.withOpacity(0.6),
           fontStyle: FontStyle.italic,
           shadows: [
             Shadow(
-              color: Coloresapp.ColorTextoFlojo.withOpacity(0.4), // Cambia esto
+              color: Coloresapp.colorTextoFlojo.withOpacity(0.4),
               blurRadius: 4,
             ),
           ]
@@ -70,14 +70,14 @@ class _TextFieldAutentificacionState extends State<TextFieldAutentificacion> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(50)),
           borderSide: BorderSide(
-            color: Coloresapp.colorContorno, // Cambia esto
+            color: Coloresapp.colorContorno,
             width: 1
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(50)),
           borderSide: BorderSide(
-            color: Coloresapp.colorPrimario, // Cambia esto
+            color: Coloresapp.colorPrimario,
             width: 2
           ),
         ),
@@ -92,7 +92,7 @@ class _TextFieldAutentificacionState extends State<TextFieldAutentificacion> {
             },
             icon: Icon(
               _valorEyeToggle ? Icons.visibility_off : Icons.visibility,
-              color: Coloresapp.colorPrimarioAccentuado, // Cambia esto
+              color: Coloresapp.colorPrimarioAccentuado,
             ),
           ) : null,
         ),

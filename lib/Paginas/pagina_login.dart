@@ -54,9 +54,9 @@ class _PaginaLoginState extends State<PaginaLogin> {
         SnackBar(
           content: Text(
             'Iniciando sesión...',
-            style: TextStyle(color: ColorsApp.colorAcompanyamientoIntenso),
+            style: TextStyle(color: Coloresapp.colorBlanco),
           ),
-          backgroundColor: ColorsApp.colorPrimariIntenso,
+          backgroundColor: Coloresapp.colorPrimario,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -71,7 +71,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorsApp.colorAcompanyamientoIntenso,
+      backgroundColor: Coloresapp.colorFondo,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -87,17 +87,17 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: ColorsApp.colorPrimariIntenso.withOpacity(0.1),
+                      color: Coloresapp.colorPrimario.withOpacity(0.1),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: ColorsApp.colorSecundarioIntenso,
+                        color: Coloresapp.colorPrimarioAccentuado,
                         width: 2,
                       ),
                     ),
                     child: Icon(
                       Icons.restaurant_menu,
                       size: 70,
-                      color: ColorsApp.colorPrimariIntenso,
+                      color: Coloresapp.colorPrimario,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -108,11 +108,11 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     style: TextStyle(
                       fontSize: 42,
                       fontWeight: FontWeight.bold,
-                      color: ColorsApp.colorPrimari,
+                      color: Coloresapp.colorTexto,
                       letterSpacing: 3,
                       shadows: [
                         Shadow(
-                          color: ColorsApp.colorSecundarioIntenso.withOpacity(0.4),
+                          color: Coloresapp.colorPrimarioAccentuado.withOpacity(0.4),
                           blurRadius: 10,
                           offset: Offset(3, 3),
                         ),
@@ -127,7 +127,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     'Inicia sesión para continuar',
                     style: TextStyle(
                       fontSize: 18,
-                      color: ColorsApp.colorSecundario,
+                      color: Coloresapp.colorTextoFlojo,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -140,7 +140,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     hintText: 'Correo electrónico',
                     focusNode: _emailFocus,
                     validator: _validateEmail,
-                    esPassword: false,
+                    esPassword: false, valorInicialOcultarEyeToggle: true,
                   ),
                   
                   const SizedBox(height: 20),
@@ -151,7 +151,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     hintText: 'Contraseña',
                     focusNode: _passwordFocus,
                     validator: _validatePassword,
-                    esPassword: true,
+                    esPassword: true, valorInicialOcultarEyeToggle: true,
                   ),
                   
                   const SizedBox(height: 15),
@@ -165,12 +165,12 @@ class _PaginaLoginState extends State<PaginaLogin> {
                         print('Navegar a recuperar contraseña');
                       },
                       style: TextButton.styleFrom(
-                        foregroundColor: ColorsApp.colorPrimariIntenso,
+                        foregroundColor: Coloresapp.colorPrimario,
                       ),
                       child: Text(
                         '¿Olvidaste tu contraseña?',
                         style: TextStyle(
-                          color: ColorsApp.colorPrimariIntenso,
+                          color: Coloresapp.colorPrimario,
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
                         ),
@@ -193,7 +193,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     children: [
                       Expanded(
                         child: Divider(
-                          color: ColorsApp.colorPrimari.withOpacity(0.3),
+                          color: Coloresapp.colorContorno.withOpacity(0.3),
                           thickness: 1,
                         ),
                       ),
@@ -202,7 +202,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                         child: Text(
                           'O CONTINÚA CON',
                           style: TextStyle(
-                            color: ColorsApp.colorSecundario.withOpacity(0.7),
+                            color: Coloresapp.colorTextoFlojo.withOpacity(0.7),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 1,
@@ -211,7 +211,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       ),
                       Expanded(
                         child: Divider(
-                          color: ColorsApp.colorPrimari.withOpacity(0.3),
+                          color: Coloresapp.colorContorno.withOpacity(0.3),
                           thickness: 1,
                         ),
                       ),
@@ -250,7 +250,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       Text(
                         '¿No tienes una cuenta? ',
                         style: TextStyle(
-                          color: ColorsApp.colorSecundario,
+                          color: Coloresapp.colorTextoFlojo,
                           fontSize: 16,
                         ),
                       ),
@@ -262,11 +262,11 @@ class _PaginaLoginState extends State<PaginaLogin> {
                         child: Text(
                           'Regístrate',
                           style: TextStyle(
-                            color: ColorsApp.colorPrimariIntenso,
+                            color: Coloresapp.colorPrimario,
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
                             decoration: TextDecoration.underline,
-                            decorationColor: ColorsApp.colorSecundarioIntenso,
+                            decorationColor: Coloresapp.colorPrimarioAccentuado,
                             decorationThickness: 2,
                           ),
                         ),
@@ -290,15 +290,15 @@ class _PaginaLoginState extends State<PaginaLogin> {
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: ColorsApp.colorAcompanyamientoIntenso,
+          color: Coloresapp.colorBlanco,
           shape: BoxShape.circle,
           border: Border.all(
-            color: ColorsApp.colorPrimari.withOpacity(0.2),
+            color: Coloresapp.colorContorno.withOpacity(0.2),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: ColorsApp.colorSecundarioIntenso.withOpacity(0.1),
+              color: Coloresapp.colorSombraCard,
               blurRadius: 8,
               offset: Offset(2, 2),
             ),
@@ -307,7 +307,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
         child: Icon(
           icon,
           size: 35,
-          color: ColorsApp.colorPrimariIntenso,
+          color: Coloresapp.colorPrimario,
         ),
       ),
     );
