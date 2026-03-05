@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ja_rating/coloresApp.dart';
-import 'package:ja_rating/Components/productos_cartas.dart';
+import 'package:ja_rating/Components/pagina_principal/productos_cartas.dart';
 
 class SeccionConScroll extends StatefulWidget {
   final String titulo;
@@ -68,8 +68,12 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
   @override
   Widget build(BuildContext context) {
     final double anchoCarta = widget.esWeb ? 200 : 160;
-    final double altoCarta = widget.esWeb ? 340 : 280;
     final double padding = widget.esWeb ? 40 : 20;
+
+    // altura imagen + padding arriba + titulo + genero + estrellas + padding abajo
+    final double altoImagen = anchoCarta * 1.25;
+    final double altoInfo = 10 + 36 + 4 + 16 + 6 + 16 + 10;
+    final double altoCarta = altoImagen + altoInfo;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,7 +86,11 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
               const SizedBox(width: 8),
               Text(
                 widget.titulo,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF111111)),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF111111),
+                ),
               ),
               if (widget.etiqueta != null) ...[
                 const SizedBox(width: 8),
@@ -94,7 +102,12 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
                   ),
                   child: Text(
                     widget.etiqueta!,
-                    style: const TextStyle(color: Coloresapp.colorBlanco, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1),
+                    style: const TextStyle(
+                      color: Coloresapp.colorBlanco,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1,
+                    ),
                   ),
                 ),
               ],
@@ -103,7 +116,10 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
                 Expanded(
                   child: Text(
                     widget.subtitulo!,
-                    style: const TextStyle(fontSize: 12, color: Coloresapp.colorTextoFlojo),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Coloresapp.colorTextoFlojo,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -136,6 +152,8 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
             itemBuilder: (context, i) {
               return ProductosCarta(
                 titulo: widget.items[i]['titulo'],
+                tituloIngles: widget.items[i]['tituloIngles'],
+                tituloOriginal: widget.items[i]['tituloOriginal'],
                 genero: widget.items[i]['genero'],
                 tipo: widget.items[i]['tipo'],
                 puntuacion: widget.items[i]['puntuacion'].toDouble(),
@@ -180,7 +198,11 @@ class _BotonScroll extends StatelessWidget {
           color: activo ? Coloresapp.colorPrimario : Coloresapp.colorFondo,
           borderRadius: BorderRadius.circular(10),
           boxShadow: activo
-              ? [BoxShadow(color: Coloresapp.colorPrimario.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3))]
+              ? [BoxShadow(
+                  color: Coloresapp.colorPrimario.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                )]
               : [],
         ),
         child: Icon(
@@ -220,7 +242,8 @@ class _BarraProgresoState extends State<_BarraProgreso> {
   void _actualizarProgreso() {
     if (widget.controladorScroll.position.maxScrollExtent > 0) {
       setState(() {
-        _progreso = widget.controladorScroll.offset / widget.controladorScroll.position.maxScrollExtent;
+        _progreso = widget.controladorScroll.offset /
+            widget.controladorScroll.position.maxScrollExtent;
       });
     }
   }
