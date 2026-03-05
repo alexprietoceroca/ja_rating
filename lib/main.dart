@@ -1,6 +1,6 @@
 // main.dart
 import 'package:flutter/material.dart';
-import 'package:ja_rating/Paginas/pagina_principal.dart';
+import 'package:ja_rating/Paginas/pagina_principal/pagina_principal.dart';
 import 'Paginas/Pagina_Login.dart';
 import 'package:ja_rating/coloresapp.dart';
 
