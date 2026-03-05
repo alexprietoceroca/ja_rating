@@ -51,7 +51,7 @@ class _TextFieldAutentificacionState extends State<TextFieldAutentificacion> {
         fontWeight: FontWeight.bold,
         shadows: [
           Shadow(
-            color: Coloresapp.ColorTextoFlojo.withOpacity(0.4),
+            color: Coloresapp.colorTextoFlojo.withOpacity(0.4),
             blurRadius: 4,
           ),
         ],
@@ -67,11 +67,11 @@ class _TextFieldAutentificacionState extends State<TextFieldAutentificacion> {
 
         hintText: widget.hintText,
         hintStyle: TextStyle(
-          color: Coloresapp.ColorTextoFlojo.withOpacity(0.6),
+          color: Coloresapp.colorTextoFlojo.withOpacity(0.6),
           fontStyle: FontStyle.italic,
           shadows: [
             Shadow(
-              color: Coloresapp.ColorTextoFlojo.withOpacity(0.4),
+              color: Coloresapp.colorTextoFlojo.withOpacity(0.4),
               blurRadius: 4,
             ),
           ],
