@@ -1,8 +1,8 @@
-// pagina_login.dart
 import 'package:flutter/material.dart';
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/boton_auth.dart';
 import 'package:ja_rating/Components/Login/text_field_autentificacion.dart';
+import 'package:ja_rating/Components/Login/texto_idiomas.dart';
 
 class PaginaLogin extends StatefulWidget {
   const PaginaLogin({super.key});
@@ -49,7 +49,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
 
   void _handleLogin() {
     if (_formKey.currentState?.validate() ?? false) {
-      // Aquí iría la lógica de autenticación
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -82,7 +81,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo o icono de la app
+                  // Logo de la app - IMAGEN PNG
                   Container(
                     width: 120,
                     height: 120,
@@ -94,45 +93,39 @@ class _PaginaLoginState extends State<PaginaLogin> {
                         width: 2,
                       ),
                     ),
-                    child: Icon(
-                      Icons.restaurant_menu,
-                      size: 70,
-                      color: Coloresapp.colorPrimario,
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/imagenes/logo.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.restaurant_menu,
+                            size: 70,
+                            color: Coloresapp.colorPrimario,
+                          );
+                        },
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
                   
-                  // Título de la app
-                  Text(
-                    'Bienvenido',
-                    style: TextStyle(
-                      fontSize: 42,
-                      fontWeight: FontWeight.bold,
+                  // Widget animado de bienvenida en múltiples idiomas
+                  TextoIdiomas(
+                    duracionAnimacion: const Duration(milliseconds: 800),
+                    duracionPausa: const Duration(seconds: 2),
+                    estiloBase: TextStyle(
                       color: Coloresapp.colorTexto,
-                      letterSpacing: 3,
                       shadows: [
                         Shadow(
                           color: Coloresapp.colorPrimarioAccentuado.withOpacity(0.4),
                           blurRadius: 10,
-                          offset: Offset(3, 3),
+                          offset: const Offset(3, 3),
                         ),
                       ],
                     ),
                   ),
                   
-                  const SizedBox(height: 10),
-                  
-                  // Subtítulo
-                  Text(
-                    'Inicia sesión para continuar',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Coloresapp.colorTextoFlojo,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 40),
                   
                   // Campo de email
                   TextFieldAutentificacion(
@@ -140,7 +133,8 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     hintText: 'Correo electrónico',
                     focusNode: _emailFocus,
                     validator: _validateEmail,
-                    esPassword: false, valorInicialOcultarEyeToggle: true,
+                    esPassword: false, 
+                    valorInicialOcultarEyeToggle: true,
                   ),
                   
                   const SizedBox(height: 20),
@@ -151,7 +145,8 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     hintText: 'Contraseña',
                     focusNode: _passwordFocus,
                     validator: _validatePassword,
-                    esPassword: true, valorInicialOcultarEyeToggle: true,
+                    esPassword: true, 
+                    valorInicialOcultarEyeToggle: true,
                   ),
                   
                   const SizedBox(height: 15),
@@ -161,7 +156,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
-                        // Aquí iría la navegación a recuperar contraseña
                         print('Navegar a recuperar contraseña');
                       },
                       style: TextButton.styleFrom(
@@ -180,7 +174,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                   
                   const SizedBox(height: 30),
                   
-                  // Botón de login personalizado (con tu widget BotoAuth)
+                  // Botón de login
                   GestureDetector(
                     onTap: _handleLogin,
                     child: BotoAuth(textBoto: 'ENTRAR'),
@@ -220,7 +214,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                   
                   const SizedBox(height: 30),
                   
-                  // Opciones de login social
+                  // Botones sociales
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -243,7 +237,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                   
                   const SizedBox(height: 30),
                   
-                  // Enlace para registrarse
+                  // Enlace de registro
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -256,7 +250,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          // Aquí iría la navegación a registro
                           print('Navegar a registro');
                         },
                         child: Text(
@@ -282,7 +275,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
     );
   }
 
-  // Widget auxiliar para botones sociales
   Widget _buildSocialButton({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
@@ -300,7 +292,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
             BoxShadow(
               color: Coloresapp.colorSombraCard,
               blurRadius: 8,
-              offset: Offset(2, 2),
+              offset: const Offset(2, 2),
             ),
           ],
         ),
