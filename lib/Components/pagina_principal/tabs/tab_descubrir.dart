@@ -49,7 +49,7 @@ class _TabDescubrirState extends State<TabDescubrir> {
             padding: EdgeInsets.symmetric(horizontal: padding),
             child: Container(
               decoration: BoxDecoration(
-                color: Coloresapp.colorBlanco,
+                color: Coloresapp.colorSombraNav,
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
