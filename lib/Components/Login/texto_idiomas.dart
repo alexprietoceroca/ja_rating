@@ -24,7 +24,7 @@ class _TextoIdiomasState extends State<TextoIdiomas> with SingleTickerProviderSt
   
   final List<MensajeIdioma> _mensajes = [
     MensajeIdioma(
-      texto: '¡Bienvenidos!',
+      texto: 'Bienvenidos',
       idioma: 'Español',
       estilo: GoogleFonts.poppins(),
     ),
