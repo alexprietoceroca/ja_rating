@@ -4,7 +4,7 @@ import 'package:ja_rating/coloresapp.dart'; // Cambia esto
 class BotoAuth extends StatelessWidget {
   final String textBoto;
   
-  const BotoAuth({super.key, required this.textBoto});
+  const BotoAuth({super.key, required this.textBoto, required Color colorBoton});
 
   @override
   Widget build(BuildContext context) {
