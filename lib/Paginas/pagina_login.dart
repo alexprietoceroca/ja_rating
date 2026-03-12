@@ -167,6 +167,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                           color: Coloresapp.colorPrimario,
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
+                          letterSpacing: 3,
                         ),
                       ),
                     ),

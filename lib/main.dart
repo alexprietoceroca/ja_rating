@@ -19,10 +19,10 @@ class MainApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Coloresapp.colorPrimario,
         scaffoldBackgroundColor: Coloresapp.colorFondo,
-        fontFamily: 'Roboto',
+        fontFamily: 'HoshikoSatsuki',
         textTheme: TextTheme(
-          bodyLarge: TextStyle(color: Coloresapp.colorTexto),
-          bodyMedium: TextStyle(color: Coloresapp.colorTextoFlojo),
+          bodyLarge: TextStyle(color: Coloresapp.colorTexto, letterSpacing: 3),
+          bodyMedium: TextStyle(color: Coloresapp.colorTextoFlojo, letterSpacing: 4),
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(

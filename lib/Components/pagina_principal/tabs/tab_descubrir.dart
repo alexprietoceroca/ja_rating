@@ -52,7 +52,10 @@ class _TabDescubrirState extends State<TabDescubrir> {
                 color: Coloresapp.colorBlanco,
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 12),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 12,
+                  ),
                 ],
               ),
               child: TextField(
@@ -85,7 +88,10 @@ class _TabDescubrirState extends State<TabDescubrir> {
                       color: activo ? Coloresapp.colorPrimario : Coloresapp.colorBlanco,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 8),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.07),
+                          blurRadius: 8,
+                        ),
                       ],
                     ),
                     child: Text(
@@ -121,6 +127,7 @@ class _TabDescubrirState extends State<TabDescubrir> {
                   tipo: filtrados[i]['tipo'],
                   puntuacion: filtrados[i]['puntuacion'].toDouble(),
                   urlImagen: filtrados[i]['img'],
+                  descripcion: filtrados[i]['descripcion'],
                 );
               },
             ),

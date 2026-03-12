@@ -67,7 +67,7 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
 
   @override
   Widget build(BuildContext context) {
-    final double anchoCarta = widget.esWeb ? 200 : 160;
+    final double anchoCarta = widget.esWeb ? 200 : 200;
     final double padding = widget.esWeb ? 40 : 20;
 
     // altura imagen + padding arriba + titulo + genero + estrellas + padding abajo
@@ -158,6 +158,7 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
                 tipo: widget.items[i]['tipo'],
                 puntuacion: widget.items[i]['puntuacion'].toDouble(),
                 urlImagen: widget.items[i]['img'],
+                descripcion: widget.items[i]['descripcion'],
                 anchoCarta: anchoCarta,
               );
             },

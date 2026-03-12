@@ -15,7 +15,11 @@ class TextoNormal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       contingutText,
-      style: GoogleFonts.notoSansKr(),
+      style: TextStyle(
+        fontFamily: 'HoshikoSatsuki',
+        fontSize: 24,
+        letterSpacing: 2,
+      ),
       
     );
   }
