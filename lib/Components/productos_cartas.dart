@@ -7,6 +7,7 @@ class ProductosCarta extends StatelessWidget {
   final String tipo;
   final double puntuacion;
   final String urlImagen;
+  final double anchoCarta;
 
   const ProductosCarta({
     super.key,
@@ -15,6 +16,7 @@ class ProductosCarta extends StatelessWidget {
     required this.tipo,
     required this.puntuacion,
     required this.urlImagen,
+    this.anchoCarta = 160,
   });
 
   Color get colorTipo {
@@ -31,7 +33,7 @@ class ProductosCarta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 160,
+      width: anchoCarta,
       margin: const EdgeInsets.only(right: 14),
       decoration: BoxDecoration(
         color: Coloresapp.colorBlanco,
@@ -53,12 +55,12 @@ class ProductosCarta extends StatelessWidget {
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                 child: Image.network(
                   urlImagen,
-                  height: 200,
-                  width: 160,
+                  height: anchoCarta * 1.25,
+                  width: anchoCarta,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Container(
-                    height: 200,
-                    width: 160,
+                    height: anchoCarta * 1.25,
+                    width: anchoCarta,
                     color: Coloresapp.colorPrimario,
                     child: const Icon(Icons.image_not_supported_rounded, color: Colors.white, size: 40),
                   ),
@@ -105,10 +107,7 @@ class ProductosCarta extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   genero,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Coloresapp.colorTextoFlojo,
-                  ),
+                  style: const TextStyle(fontSize: 11, color: Coloresapp.colorTextoFlojo),
                 ),
                 const SizedBox(height: 6),
                 _EstrellasPuntuacion(puntuacion: puntuacion),
@@ -123,24 +122,24 @@ class ProductosCarta extends StatelessWidget {
 
 class _EstrellasPuntuacion extends StatelessWidget {
   final double puntuacion;
+
   const _EstrellasPuntuacion({required this.puntuacion});
 
   @override
   Widget build(BuildContext context) {
-    final int estrellas = (puntuacion / 2).round();
     return Row(
       children: [
         ...List.generate(
           5,
           (i) => Icon(
-            i < estrellas ? Icons.star_rounded : Icons.star_outline_rounded,
+            i < puntuacion.round() ? Icons.star_rounded : Icons.star_outline_rounded,
             size: 14,
-            color: i < estrellas ? Coloresapp.colorPrimario : Colors.grey.shade300,
+            color: i < puntuacion.round() ? Coloresapp.colorPrimario : Colors.grey.shade300,
           ),
         ),
         const SizedBox(width: 4),
         Text(
-          puntuacion.toString(),
+          puntuacion.toStringAsFixed(1),
           style: const TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,

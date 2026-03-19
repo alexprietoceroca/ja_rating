@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ja_rating/coloresApp.dart';
 
 class TextoNormal extends StatelessWidget {
@@ -14,11 +15,8 @@ class TextoNormal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       contingutText,
-      style: TextStyle(
-        fontSize: 24,
-        color: colorText,
-        fontWeight: FontWeight.bold,
-      ),
+      style: GoogleFonts.notoSansKr(),
+      
     );
   }
 }

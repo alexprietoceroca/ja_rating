@@ -1,8 +1,8 @@
-// pagina_login.dart
 import 'package:flutter/material.dart';
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/boton_auth.dart';
 import 'package:ja_rating/Components/Login/text_field_autentificacion.dart';
+import 'package:ja_rating/Components/Login/texto_idiomas.dart';
 
 class PaginaLogin extends StatefulWidget {
   const PaginaLogin({super.key});
@@ -17,6 +17,8 @@ class _PaginaLoginState extends State<PaginaLogin> {
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final _formKey = GlobalKey<FormState>();
+  
+  bool _isHovering = false;
 
   @override
   void dispose() {
@@ -49,7 +51,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
 
   void _handleLogin() {
     if (_formKey.currentState?.validate() ?? false) {
-      // Aquí iría la lógica de autenticación
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -71,218 +72,240 @@ class _PaginaLoginState extends State<PaginaLogin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Coloresapp.colorFondo,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Logo o icono de la app
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: Coloresapp.colorPrimario.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Coloresapp.colorPrimarioAccentuado,
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.restaurant_menu,
-                      size: 70,
-                      color: Coloresapp.colorPrimario,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  
-                  // Título de la app
-                  Text(
-                    'Bienvenido',
-                    style: TextStyle(
-                      fontSize: 42,
-                      fontWeight: FontWeight.bold,
-                      color: Coloresapp.colorTexto,
-                      letterSpacing: 3,
-                      shadows: [
-                        Shadow(
-                          color: Coloresapp.colorPrimarioAccentuado.withOpacity(0.4),
-                          blurRadius: 10,
-                          offset: Offset(3, 3),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 10),
-                  
-                  // Subtítulo
-                  Text(
-                    'Inicia sesión para continuar',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Coloresapp.colorTextoFlojo,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 50),
-                  
-                  // Campo de email
-                  TextFieldAutentificacion(
-                    controllerText: _emailController,
-                    hintText: 'Correo electrónico',
-                    focusNode: _emailFocus,
-                    validator: _validateEmail,
-                    esPassword: false, valorInicialOcultarEyeToggle: true,
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  // Campo de contraseña
-                  TextFieldAutentificacion(
-                    controllerText: _passwordController,
-                    hintText: 'Contraseña',
-                    focusNode: _passwordFocus,
-                    validator: _validatePassword,
-                    esPassword: true, valorInicialOcultarEyeToggle: true,
-                  ),
-                  
-                  const SizedBox(height: 15),
-                  
-                  // Enlace "¿Olvidaste tu contraseña?"
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        // Aquí iría la navegación a recuperar contraseña
-                        print('Navegar a recuperar contraseña');
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: Coloresapp.colorPrimario,
-                      ),
-                      child: Text(
-                        '¿Olvidaste tu contraseña?',
-                        style: TextStyle(
-                          color: Coloresapp.colorPrimario,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 30),
-                  
-                  // Botón de login personalizado (con tu widget BotoAuth)
-                  GestureDetector(
-                    onTap: _handleLogin,
-                    child: BotoAuth(textBoto: 'ENTRAR'),
-                  ),
-                  
-                  const SizedBox(height: 40),
-                  
-                  // Separador "o"
-                  Row(
+      backgroundColor: Colors.black, // Fondo negro
+      body: Stack(
+        children: [
+          // Fondo negro sólido (sin imagen)
+          Container(
+            color: Colors.black,
+          ),
+          
+          // Contenido principal
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: Divider(
-                          color: Coloresapp.colorContorno.withOpacity(0.3),
-                          thickness: 1,
+                      // Espacio donde estaba el logo (ahora vacío)
+                      const SizedBox(height: 120), // Mantiene la misma altura que antes
+                      
+                      const SizedBox(height: 30),
+                      
+                      // Widget animado de bienvenida en múltiples idiomas - ROJO
+                      TextoIdiomas(
+                        duracionAnimacion: const Duration(milliseconds: 800),
+                        duracionPausa: const Duration(seconds: 2),
+                        estiloBase: TextStyle(
+                          color: Coloresapp.colorRojoOscuro,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              color: Coloresapp.colorPrimarioAccentuado.withOpacity(0.4),
+                              blurRadius: 10,
+                              offset: const Offset(3, 3),
+                            ),
+                          ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'O CONTINÚA CON',
-                          style: TextStyle(
-                            color: Coloresapp.colorTextoFlojo.withOpacity(0.7),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1,
+                      
+                      const SizedBox(height: 40),
+                      
+                      // Campo de email
+                      TextFieldAutentificacion(
+                        controllerText: _emailController,
+                        hintText: 'Correo electrónico',
+                        focusNode: _emailFocus,
+                        validator: _validateEmail,
+                        esPassword: false, 
+                        valorInicialOcultarEyeToggle: true,
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Campo de contraseña
+                      TextFieldAutentificacion(
+                        controllerText: _passwordController,
+                        hintText: 'Contraseña',
+                        focusNode: _passwordFocus,
+                        validator: _validatePassword,
+                        esPassword: true, 
+                        valorInicialOcultarEyeToggle: true,
+                      ),
+                      
+                      const SizedBox(height: 15),
+                      
+                      // Enlace "¿Olvidaste tu contraseña?"
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            print('Navegar a recuperar contraseña');
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: Coloresapp.colorPrimario,
+                          ),
+                          child: Text(
+                            '¿Olvidaste tu contraseña?',
+                            style: TextStyle(
+                              color: Coloresapp.colorPrimario,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                       ),
-                      Expanded(
-                        child: Divider(
-                          color: Coloresapp.colorContorno.withOpacity(0.3),
-                          thickness: 1,
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 30),
-                  
-                  // Opciones de login social
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildSocialButton(
-                        icon: Icons.g_mobiledata_rounded,
-                        onTap: () => print('Login con Google'),
-                      ),
-                      const SizedBox(width: 20),
-                      _buildSocialButton(
-                        icon: Icons.facebook_rounded,
-                        onTap: () => print('Login con Facebook'),
-                      ),
-                      const SizedBox(width: 20),
-                      _buildSocialButton(
-                        icon: Icons.apple_rounded,
-                        onTap: () => print('Login con Apple'),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 30),
-                  
-                  // Enlace para registrarse
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '¿No tienes una cuenta? ',
-                        style: TextStyle(
-                          color: Coloresapp.colorTextoFlojo,
-                          fontSize: 16,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          // Aquí iría la navegación a registro
-                          print('Navegar a registro');
-                        },
-                        child: Text(
-                          'Regístrate',
-                          style: TextStyle(
-                            color: Coloresapp.colorPrimario,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            decoration: TextDecoration.underline,
-                            decorationColor: Coloresapp.colorPrimarioAccentuado,
-                            decorationThickness: 2,
+                      
+                      const SizedBox(height: 30),
+                      
+                      // Botón de login con efecto hover
+                      MouseRegion(
+                        onEnter: (_) => setState(() => _isHovering = true),
+                        onExit: (_) => setState(() => _isHovering = false),
+                        child: GestureDetector(
+                          onTap: _handleLogin,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: double.infinity,
+                            height: 55,
+                            decoration: BoxDecoration(
+                              color: _isHovering 
+                                  ? Coloresapp.colorNaranja.withOpacity(0.9)
+                                  : Coloresapp.colorNaranja,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: _isHovering
+                                  ? [
+                                      BoxShadow(
+                                        color: Coloresapp.colorNaranja.withOpacity(0.5),
+                                        blurRadius: 15,
+                                        offset: const Offset(0, 5),
+                                      )
+                                    ]
+                                  : [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      )
+                                    ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                'ENTRAR',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
+                      
+                      const SizedBox(height: 40),
+                      
+                      // Separador "o"
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Divider(
+                              color: Coloresapp.colorContorno.withOpacity(0.3),
+                              thickness: 1,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'O CONTINÚA CON',
+                              style: TextStyle(
+                                color: Coloresapp.colorTextoFlojo.withOpacity(0.7),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Divider(
+                              color: Coloresapp.colorContorno.withOpacity(0.3),
+                              thickness: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 30),
+                      
+                      // Botones sociales
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildSocialButton(
+                            icon: Icons.g_mobiledata_rounded,
+                            onTap: () => print('Login con Google'),
+                          ),
+                          const SizedBox(width: 20),
+                          _buildSocialButton(
+                            icon: Icons.facebook_rounded,
+                            onTap: () => print('Login con Facebook'),
+                          ),
+                          const SizedBox(width: 20),
+                          _buildSocialButton(
+                            icon: Icons.apple_rounded,
+                            onTap: () => print('Login con Apple'),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 30),
+                      
+                      // Enlace de registro
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '¿No tienes una cuenta? ',
+                            style: TextStyle(
+                              color: Coloresapp.colorTextoFlojo,
+                              fontSize: 16,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              print('Navegar a registro');
+                            },
+                            child: Text(
+                              'Regístrate',
+                              style: TextStyle(
+                                color: Coloresapp.colorPrimario,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Coloresapp.colorPrimarioAccentuado,
+                                decorationThickness: 2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  // Widget auxiliar para botones sociales
   Widget _buildSocialButton({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
@@ -300,7 +323,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
             BoxShadow(
               color: Coloresapp.colorSombraCard,
               blurRadius: 8,
-              offset: Offset(2, 2),
+              offset: const Offset(2, 2),
             ),
           ],
         ),
