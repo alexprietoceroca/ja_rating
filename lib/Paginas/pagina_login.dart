@@ -17,6 +17,8 @@ class _PaginaLoginState extends State<PaginaLogin> {
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final _formKey = GlobalKey<FormState>();
+  
+  bool _isHovering = false;
 
   @override
   void dispose() {
@@ -70,31 +72,12 @@ class _PaginaLoginState extends State<PaginaLogin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Coloresapp.colorNaranja, // Fondo naranja detrás de todo
+      backgroundColor: Colors.black, // Fondo negro
       body: Stack(
         children: [
-          // Fondo con imagen y difuminado gradual (SIN ANIMACIÓN)
+          // Fondo negro sólido (sin imagen)
           Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.center,
-                radius: 1.2,
-                colors: [
-                  Coloresapp.colorNaranja.withOpacity(0.9), // Centro más visible
-                  Coloresapp.colorNaranja.withOpacity(0.5), // Difuminado medio
-                  Coloresapp.colorNaranja.withOpacity(0.2), // Casi transparente en bordes
-                ],
-                stops: const [0.2, 0.6, 1.0], // Controla la distribución del difuminado
-              ),
-              image: DecorationImage(
-                image: AssetImage('assets/imagenes/Tramas.png'),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Coloresapp.colorNaranja.withOpacity(0.3), // Tinte naranja sutil
-                  BlendMode.overlay,
-                ),
-              ),
-            ),
+            color: Colors.black,
           ),
           
           // Contenido principal
@@ -108,40 +91,19 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Logo de la app - IMAGEN PNG
-                      Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: Coloresapp.colorPrimario.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Coloresapp.colorPrimarioAccentuado,
-                            width: 2,
-                          ),
-                        ),
-                        child: ClipOval(
-                          child: Image.asset(
-                            'assets/imagenes/logo.png',
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                Icons.restaurant_menu,
-                                size: 70,
-                                color: Coloresapp.colorPrimario,
-                              );
-                            },
-                          ),
-                        ),
-                      ),
+                      // Espacio donde estaba el logo (ahora vacío)
+                      const SizedBox(height: 120), // Mantiene la misma altura que antes
+                      
                       const SizedBox(height: 30),
                       
-                      // Widget animado de bienvenida en múltiples idiomas
+                      // Widget animado de bienvenida en múltiples idiomas - ROJO
                       TextoIdiomas(
                         duracionAnimacion: const Duration(milliseconds: 800),
                         duracionPausa: const Duration(seconds: 2),
                         estiloBase: TextStyle(
-                          color: Coloresapp.colorTexto,
+                          color: Coloresapp.colorRojoOscuro,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
                           shadows: [
                             Shadow(
                               color: Coloresapp.colorPrimarioAccentuado.withOpacity(0.4),
@@ -201,12 +163,49 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 30),
                       
-                      // Botón de login - AHORA EN NARANJA
-                      GestureDetector(
-                        onTap: _handleLogin,
-                        child: BotoAuth(
-                          textBoto: 'ENTRAR',
-                          colorBoton: Coloresapp.colorNaranja,
+                      // Botón de login con efecto hover
+                      MouseRegion(
+                        onEnter: (_) => setState(() => _isHovering = true),
+                        onExit: (_) => setState(() => _isHovering = false),
+                        child: GestureDetector(
+                          onTap: _handleLogin,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: double.infinity,
+                            height: 55,
+                            decoration: BoxDecoration(
+                              color: _isHovering 
+                                  ? Coloresapp.colorNaranja.withOpacity(0.9)
+                                  : Coloresapp.colorNaranja,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: _isHovering
+                                  ? [
+                                      BoxShadow(
+                                        color: Coloresapp.colorNaranja.withOpacity(0.5),
+                                        blurRadius: 15,
+                                        offset: const Offset(0, 5),
+                                      )
+                                    ]
+                                  : [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      )
+                                    ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                'ENTRAR',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                       
