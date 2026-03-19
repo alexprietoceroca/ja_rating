@@ -3,6 +3,7 @@ import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/boton_auth.dart';
 import 'package:ja_rating/Components/Login/text_field_autentificacion.dart';
 import 'package:ja_rating/Components/Login/texto_idiomas.dart';
+import 'package:ja_rating/Paginas/pagina_login/pagina_registro.dart';
 
 class PaginaLogin extends StatefulWidget {
   const PaginaLogin({super.key});
@@ -62,8 +63,11 @@ class _PaginaLoginState extends State<PaginaLogin> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
+          duration: const Duration(seconds: 2),
         ),
       );
+      
+      // Simular login exitoso - solo mostramos mensaje, sin redirigir
       print('Email: ${_emailController.text}');
       print('Password: ${_passwordController.text}');
     }
@@ -72,12 +76,12 @@ class _PaginaLoginState extends State<PaginaLogin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Fondo negro
+      backgroundColor: Coloresapp.colorFonsInici,
       body: Stack(
         children: [
-          // Fondo negro sólido (sin imagen)
+          // Fondo negro sólido
           Container(
-            color: Colors.black,
+            color: Coloresapp.colorFonsInici,
           ),
           
           // Contenido principal
@@ -91,8 +95,8 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Espacio donde estaba el logo (ahora vacío)
-                      const SizedBox(height: 120), // Mantiene la misma altura que antes
+                      // Espacio donde estaba el logo
+                      const SizedBox(height: 120),
                       
                       const SizedBox(height: 30),
                       
@@ -266,7 +270,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 30),
                       
-                      // Enlace de registro
+                      // Enlace de registro - REDIRIGE A PAGINA_REGISTRO
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -279,7 +283,10 @@ class _PaginaLoginState extends State<PaginaLogin> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              print('Navegar a registro');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const PaginaRegistro()),
+                              );
                             },
                             child: Text(
                               'Regístrate',

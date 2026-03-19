@@ -14,4 +14,5 @@ class Coloresapp {
   static const Color colorRojoOscuro = Color.fromARGB(255, 139, 26, 13);
   static const Color colorSombraCard = Color.fromARGB(18, 0, 0, 0);
   static const Color colorSombraNav = Color.fromARGB(20, 0, 0, 0);
+  static const Color colorFonsInici = Color.fromARGB(255, 75, 75, 75);
 }
