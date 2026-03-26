@@ -3,19 +3,27 @@ import 'package:ja_rating/coloresApp.dart';
 
 class CabeceraHero extends StatelessWidget {
   final bool esWeb;
+  final bool transparente;
 
-  const CabeceraHero({super.key, required this.esWeb});
+  const CabeceraHero({
+    super.key,
+    required this.esWeb,
+    this.transparente = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Coloresapp.colorPrimario, Coloresapp.colorRojoOscuro],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+      decoration: BoxDecoration(
+        gradient: transparente
+            ? null
+            : LinearGradient(
+                colors: [Coloresapp.colorPrimario, Coloresapp.colorRojoOscuro],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+        color: transparente ? Colors.transparent : null,
       ),
       child: SafeArea(
         bottom: false,
@@ -33,7 +41,8 @@ class CabeceraHero extends StatelessWidget {
                       Text(
                         'Bienvenido de vuelta',
                         style: TextStyle(
-                          color: Coloresapp.colorBlanco.withOpacity(0.75),
+                          fontFamily: 'HoshikoSatsuki',
+                          color: Coloresapp.colorBlanco.withOpacity(0.9),
                           fontSize: esWeb ? 15 : 13,
                         ),
                       ),
@@ -41,7 +50,8 @@ class CabeceraHero extends StatelessWidget {
                       Text(
                         'JA-Rating',
                         style: TextStyle(
-                          color: Coloresapp.colorBlanco,
+                          fontFamily: 'HoshikoSatsuki',
+                          color: Coloresapp.colorTexto,
                           fontSize: esWeb ? 34 : 26,
                           fontWeight: FontWeight.w900,
                         ),
@@ -54,7 +64,10 @@ class CabeceraHero extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.notifications_outlined, color: Coloresapp.colorBlanco),
+                      icon: const Icon(
+                        Icons.notifications_outlined,
+                        color: Coloresapp.colorBlanco,
+                      ),
                       onPressed: () {},
                     ),
                   ),
@@ -95,9 +108,24 @@ class _CajaEstadistica extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(valor, style: const TextStyle(color: Coloresapp.colorBlanco, fontSize: 20, fontWeight: FontWeight.w900)),
+            Text(
+              valor,
+              style: const TextStyle(
+                fontFamily: 'HoshikoSatsuki',
+                color: Coloresapp.colorTexto,
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(etiqueta, style: TextStyle(color: Coloresapp.colorBlanco.withOpacity(0.7), fontSize: 10)),
+            Text(
+              etiqueta,
+              style: TextStyle(
+                fontFamily: 'HoshikoSatsuki',
+                color: Coloresapp.colorBlanco.withOpacity(0.8),
+                fontSize: 10,
+              ),
+            ),
           ],
         ),
       ),

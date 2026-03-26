@@ -32,3 +32,6 @@ flutter:
         #   weight: 700
   assets:
     - assets/imagenes/logo.png
+    - "assets/imagenes/papel rasgado.png"
+    - assets/imagenes/puntos_comic.png
+    - assets/imagenes/brush.png
