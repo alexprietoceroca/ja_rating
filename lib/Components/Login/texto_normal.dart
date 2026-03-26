@@ -19,6 +19,9 @@ class TextoNormal extends StatelessWidget {
         fontFamily: 'HoshikoSatsuki',
         fontSize: 24,
         letterSpacing: 2,
+        foreground: Paint()
+            ..blendMode = BlendMode.difference
+            ..color = Colors.white,
       ),
       
     );
