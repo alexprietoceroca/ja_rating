@@ -1,10 +1,23 @@
-// main.dart
 import 'package:flutter/material.dart';
-import 'package:ja_rating/Paginas/pagina_principal/pagina_principal.dart';
+<<<<<<< HEAD
+import 'package:ja_rating/Paginas/pagina_principal.dart';
 import 'Paginas/Pagina_Login.dart';
 import 'package:ja_rating/coloresapp.dart';
+=======
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+>>>>>>> Pagina_Registro
 
-void main() {
+import 'package:ja_rating/Paginas/pagina_principal/pagina_principal.dart';
+import 'package:ja_rating/Paginas/pagina_login/pagina_login.dart';
+import 'package:ja_rating/coloresapp.dart';
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MainApp());
 }
 
@@ -19,10 +32,10 @@ class MainApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Coloresapp.colorPrimario,
         scaffoldBackgroundColor: Coloresapp.colorFondo,
-        fontFamily: 'Roboto',
+        fontFamily: 'HoshikoSatsuki',
         textTheme: TextTheme(
-          bodyLarge: TextStyle(color: Coloresapp.colorTexto),
-          bodyMedium: TextStyle(color: Coloresapp.colorTextoFlojo),
+          bodyLarge: TextStyle(color: Coloresapp.colorTexto, letterSpacing: 3),
+          bodyMedium: TextStyle(color: Coloresapp.colorTextoFlojo, letterSpacing: 4),
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
@@ -30,7 +43,36 @@ class MainApp extends StatelessWidget {
           ),
         ),
       ),
-      home: PaginaLogin(),
+<<<<<<< HEAD
+      home: PaginaPrincipal(),
+=======
+
+      home: const AuthWrapper(),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasData) {
+          return PaginaPrincipal();
+        }
+        return PaginaPrincipal();
+      },
+>>>>>>> Pagina_Registro
     );
   }
 }

@@ -22,5 +22,16 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # Aquí és on afegim les nostres fonts personalitzades
+  fonts:
+    - family: HoshikoSatsuki  # Aquest és el nom que utilitzaràs al codi
+      fonts:
+        - asset: lib/fonts/Hoshiko Satsuki.ttf
+        # Si la font tingués més variants (negreta, cursiva...), les afegiries aquí
+        # - asset: fonts/Hoshiko_Satsuki_Bold.ttf
+        #   weight: 700
   assets:
     - assets/imagenes/logo.png
+    - "assets/imagenes/papel rasgado.png"
+    - assets/imagenes/puntos_comic.png
+    - assets/imagenes/brush.png
