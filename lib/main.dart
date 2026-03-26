@@ -1,5 +1,6 @@
 // main.dart
 import 'package:flutter/material.dart';
+import 'package:ja_rating/Paginas/pagina_principal.dart';
 import 'Paginas/Pagina_Login.dart';
 import 'package:ja_rating/coloresapp.dart';
 
@@ -18,10 +19,10 @@ class MainApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Coloresapp.colorPrimario,
         scaffoldBackgroundColor: Coloresapp.colorFondo,
-        fontFamily: 'Roboto',
+        fontFamily: 'HoshikoSatsuki',
         textTheme: TextTheme(
-          bodyLarge: TextStyle(color: Coloresapp.colorTexto),
-          bodyMedium: TextStyle(color: Coloresapp.ColorTextoFlojo),
+          bodyLarge: TextStyle(color: Coloresapp.colorTexto, letterSpacing: 3),
+          bodyMedium: TextStyle(color: Coloresapp.colorTextoFlojo, letterSpacing: 4),
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
@@ -29,7 +30,7 @@ class MainApp extends StatelessWidget {
           ),
         ),
       ),
-      home: PaginaLogin(),
+      home: PaginaPrincipal(),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ja_rating/coloresApp.dart';
 
 class TextoNormal extends StatelessWidget {
@@ -15,10 +16,11 @@ class TextoNormal extends StatelessWidget {
     return Text(
       contingutText,
       style: TextStyle(
+        fontFamily: 'HoshikoSatsuki',
         fontSize: 24,
-        color: colorText,
-        fontWeight: FontWeight.bold,
+        letterSpacing: 2,
       ),
+      
     );
   }
 }
