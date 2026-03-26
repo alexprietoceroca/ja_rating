@@ -1,18 +1,17 @@
-// texto_normal.dart
+// texto_titulo.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:ja_rating/coloresApp.dart';
 
-class TextoNormal extends StatelessWidget {
+class TextoTitulo extends StatelessWidget {
   final String contingutText;
   final Color? colorText;
   final double? fontSize;
   final FontWeight? fontWeight;
   final TextOverflow? overflow;
   final int? maxLines;
-  final double? height; // interlineado opcional
+  final double? height;
 
-  const TextoNormal({
+  const TextoTitulo({
     super.key,
     required this.contingutText,
     this.colorText,
@@ -27,7 +26,8 @@ class TextoNormal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       contingutText,
-      style: GoogleFonts.oswald(
+      style: TextStyle(
+        fontFamily: 'HoshikoSatsuki',
         fontSize: fontSize ?? 16,
         fontWeight: fontWeight ?? FontWeight.normal,
         color: colorText ?? Coloresapp.colorTexto,

@@ -1,11 +1,11 @@
 // productos_cartas.dart
-// Versión con información extra (autor, año, estudio) en la cara trasera
-// Alturas reducidas para que las cartas sean más compactas
+// Ahora: long press para mostrar trasera, soltar para volver a delantera.
+// Tap simple → navegación a detalle.
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
-import 'package:ja_rating/coloresApp.dart'; // Ajusta la ruta si es necesario
+import 'package:ja_rating/coloresApp.dart';
 
 // ------------------------------------------------------------
 // Controlador global para la animación de cambio de idioma
@@ -61,6 +61,7 @@ class ProductosCarta extends StatefulWidget {
   final String autor;
   final int anio;
   final String estudio;
+  final VoidCallback? onTap;
 
   const ProductosCarta({
     super.key,
@@ -77,17 +78,15 @@ class ProductosCarta extends StatefulWidget {
     this.autor = '',
     this.anio = 0,
     this.estudio = '',
+    this.onTap,
   });
 
-  /// Método estático para calcular la altura total de la carta
   static double calcularAltura(double ancho, {bool mostrarExtra = false}) {
     final double altoImagen = ancho * 1.25;
     if (mostrarExtra) {
-      // Altura para cara trasera con extras (autor, año, estudio) - más compacta
-      return altoImagen + 60;
+      return altoImagen + 50;
     } else {
-      // Altura para cara trasera sin extras (solo sinopsis)
-      return altoImagen + 130;
+      return altoImagen + 80;
     }
   }
 
@@ -99,7 +98,7 @@ class _ProductosCartaState extends State<ProductosCarta>
     with SingleTickerProviderStateMixin {
   late AnimationController _controladorGiro;
   late Animation<double> _animacionGiro;
-  bool _girada = false;
+  bool _girada = false; // Control interno para saber si estamos mostrando trasera
 
   @override
   void initState() {
@@ -211,20 +210,29 @@ class _ProductosCartaState extends State<ProductosCarta>
     }
   }
 
+  void _mostrarTrasera() {
+    if (!_girada && !_controladorGiro.isAnimating) {
+      _controladorGiro.forward();
+      setState(() => _girada = true);
+    }
+  }
+
+  void _ocultarTrasera() {
+    if (_girada && !_controladorGiro.isAnimating) {
+      _controladorGiro.reverse();
+      setState(() => _girada = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     _ControladorIdioma().iniciar();
 
     return GestureDetector(
-      onDoubleTap: () {
-        if (!_girada) {
-          _controladorGiro.forward();
-          setState(() => _girada = true);
-        } else {
-          _controladorGiro.reverse();
-          setState(() => _girada = false);
-        }
-      },
+      onTap: widget.onTap,
+      onLongPressStart: (_) => _mostrarTrasera(),
+      onLongPressUp: _ocultarTrasera,
+      onLongPressCancel: _ocultarTrasera, // Si se cancela (por scroll, etc.)
       child: AnimatedBuilder(
         animation: _animacionGiro,
         builder: (context, child) {
@@ -250,7 +258,6 @@ class _ProductosCartaState extends State<ProductosCarta>
                         widget.anchoCarta,
                         mostrarExtra: widget.mostrarExtra,
                       ),
-                      // Pasamos los campos extra
                       autor: widget.autor,
                       anio: widget.anio,
                       estudio: widget.estudio,
@@ -265,7 +272,6 @@ class _ProductosCartaState extends State<ProductosCarta>
                     urlImagen: widget.urlImagen,
                     colorTipo: colorTipo,
                     anchoCarta: widget.anchoCarta,
-                    // Ya no necesitamos mostrarExtra aquí
                   ),
           );
         },
@@ -435,7 +441,6 @@ class _CaraDetras extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Etiqueta de género
                     Container(
                       padding:
                           const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -455,7 +460,6 @@ class _CaraDetras extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Título
                     Text(
                       titulo,
                       style: const TextStyle(
@@ -469,10 +473,8 @@ class _CaraDetras extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 10),
-                    // Línea separadora
                     Container(height: 1, color: Colors.white.withOpacity(0.3)),
                     const SizedBox(height: 10),
-                    // Sinopsis
                     Text(
                       descripcion,
                       style: TextStyle(
@@ -481,13 +483,11 @@ class _CaraDetras extends StatelessWidget {
                         fontSize: 11,
                         height: 1.4,
                       ),
-                      maxLines: 4, // Reducido a 4 líneas para ahorrar espacio
+                      maxLines: 4,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    // Información extra (solo si mostrarExtra es true)
                     if (mostrarExtra) ...[
                       const SizedBox(height: 10),
-                      // Autor
                       Row(
                         children: [
                           Icon(Icons.person_outline_rounded,
@@ -508,7 +508,6 @@ class _CaraDetras extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      // Año
                       Row(
                         children: [
                           Icon(Icons.calendar_today_rounded,
@@ -525,7 +524,6 @@ class _CaraDetras extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      // Estudio
                       Row(
                         children: [
                           Icon(Icons.business_center_rounded,
@@ -551,7 +549,6 @@ class _CaraDetras extends StatelessWidget {
               ),
             ),
           ),
-          // Mensaje de doble click para volver
           Positioned(
             bottom: 14,
             left: 14,
@@ -563,7 +560,7 @@ class _CaraDetras extends StatelessWidget {
                 const SizedBox(width: 4),
                 Flexible(
                   child: Text(
-                    'Doble click para volver',
+                    'Mantén pulsado para ver',
                     style: TextStyle(
                       fontFamily: 'HoshikoSatsuki',
                       color: Colors.white.withOpacity(0.6),
@@ -720,10 +717,10 @@ class _TituloAnimadoState extends State<_TituloAnimado>
   Widget build(BuildContext context) {
     final mensaje = widget.mensajes[_indiceActual];
     return SizedBox(
-      height: 40,
+      height: 20,
       width: widget.anchoCarta - 20,
       child: OverflowBox(
-        maxHeight: 40,
+        maxHeight: 30,
         alignment: Alignment.centerLeft,
         child: FadeTransition(
           opacity: _fadeAnimation,

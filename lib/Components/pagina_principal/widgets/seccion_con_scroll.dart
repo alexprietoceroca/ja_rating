@@ -1,5 +1,6 @@
 // seccion_con_scroll.dart
 import 'package:flutter/material.dart';
+import 'package:ja_rating/Paginas/pagina_producto.dart';
 import 'package:ja_rating/coloresApp.dart';
 import 'package:ja_rating/Components/pagina_principal/productos_cartas.dart';
 
@@ -46,7 +47,9 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
   void _actualizarBotones() {
     setState(() {
       _puedeIrIzquierda = _controladorScroll.offset > 0;
-      _puedeIrDerecha = _controladorScroll.offset < _controladorScroll.position.maxScrollExtent;
+      _puedeIrDerecha =
+          _controladorScroll.offset <
+          _controladorScroll.position.maxScrollExtent;
     });
   }
 
@@ -71,7 +74,10 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
     final double anchoCarta = widget.esWeb ? 200 : 200;
     final double padding = widget.esWeb ? 40 : 20;
     // Usamos el método estático para calcular la altura (sin extras)
-    final double altoCarta = ProductosCarta.calcularAltura(anchoCarta, mostrarExtra: false);
+    final double altoCarta = ProductosCarta.calcularAltura(
+      anchoCarta,
+      mostrarExtra: false,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,7 +101,10 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
               if (widget.etiqueta != null) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: Coloresapp.colorPrimario,
                     borderRadius: BorderRadius.circular(20),
@@ -160,7 +169,14 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
                 urlImagen: widget.items[i]['img'],
                 descripcion: widget.items[i]['descripcion'],
                 anchoCarta: anchoCarta,
-                // No pasamos autor, anio, estudio para que no se muestren
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PaginaProducto(producto: widget.items[i]),
+                    ),
+                  );
+                },
               );
             },
           ),
@@ -200,11 +216,13 @@ class _BotonScroll extends StatelessWidget {
           color: activo ? Coloresapp.colorPrimario : Coloresapp.colorFondo,
           borderRadius: BorderRadius.circular(10),
           boxShadow: activo
-              ? [BoxShadow(
-                  color: Coloresapp.colorPrimario.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                )]
+              ? [
+                  BoxShadow(
+                    color: Coloresapp.colorPrimario.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
               : [],
         ),
         child: Icon(
@@ -244,7 +262,8 @@ class _BarraProgresoState extends State<_BarraProgreso> {
   void _actualizarProgreso() {
     if (widget.controladorScroll.position.maxScrollExtent > 0) {
       setState(() {
-        _progreso = widget.controladorScroll.offset /
+        _progreso =
+            widget.controladorScroll.offset /
             widget.controladorScroll.position.maxScrollExtent;
       });
     }
@@ -255,7 +274,10 @@ class _BarraProgresoState extends State<_BarraProgreso> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final double anchoBarra = constraints.maxWidth;
-        final double anchoIndicador = (anchoBarra * 0.25).clamp(60.0, anchoBarra);
+        final double anchoIndicador = (anchoBarra * 0.25).clamp(
+          60.0,
+          anchoBarra,
+        );
 
         return Container(
           height: 4,

@@ -29,6 +29,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Una chica que cree en los fantasmas y un chico que cree en los extraterrestres descubren que ambos tienen razón, desencadenando una historia llena de acción y humor.',
       'img': 'https://cdn.myanimelist.net/images/anime/1906/145217.jpg',
+      'generos': ['Sobrenatural', 'Acción', 'Romance', 'Comedia'],
+      'demografia': 'Shounen',
+      'episodios': 38,
     },
     {
       'titulo': 'Solo Leveling',
@@ -43,6 +46,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Sung Jinwoo, el cazador más débil del mundo, obtiene un poder misterioso que le permite subir de nivel sin límite en un mundo lleno de mazmorras y monstruos.',
       'img': 'https://cdn.myanimelist.net/images/manga/3/222295.jpg',
+      'generos': ['Acción', 'Aventura', 'Fantasía'],
+      'demografia': 'Shounen',
+      'episodios': 179,
     },
     {
       'titulo': 'Vinland Saga',
@@ -57,6 +63,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'La historia de Thorfinn, un joven vikingo que busca venganza por la muerte de su padre en la Europa medieval, explorando temas de guerra, paz y redención.',
       'img': 'https://cdn.myanimelist.net/images/manga/2/188925.jpg',
+      'generos': ['Histórico', 'Acción', 'Drama'],
+      'demografia': 'Seinen',
+      'episodios': 200,
     },
     {
       'titulo': 'Frieren',
@@ -71,6 +80,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Una elfa maga reflexiona sobre el paso del tiempo y los vínculos humanos mientras emprende un nuevo viaje tras la muerte de sus compañeros de aventura.',
       'img': 'https://cdn.myanimelist.net/images/anime/1015/138006.jpg',
+      'generos': ['Fantasía', 'Aventura', 'Drama'],
+      'demografia': 'Shounen',
+      'episodios': 28,
     },
     {
       'titulo': 'Dios del Highschool',
@@ -85,6 +97,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Un torneo de artes marciales entre estudiantes de instituto esconde un conflicto mucho mayor que involucra poderes divinos y antiguos dioses.',
       'img': 'https://cdn.myanimelist.net/images/anime/1483/107881.jpg',
+      'generos': ['Artes marciales', 'Acción', 'Sobrenatural'],
+      'demografia': 'Shounen',
+      'episodios': 569,
     },
     {
       'titulo': 'Torre de Dios',
@@ -99,6 +114,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Bam entra a una misteriosa torre para encontrar a su única amiga Rachel, enfrentando pruebas mortales en cada piso con poderes y aliados inesperados.',
       'img': 'https://cdn.myanimelist.net/images/manga/2/164417.jpg',
+      'generos': ['Aventura', 'Fantasía', 'Acción'],
+      'demografia': 'Shounen',
+      'episodios': 600,
     },
     {
       'titulo': 'El Lector Omnisciente',
@@ -113,6 +131,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'El único lector de una novela de apocalipsis ve cómo la ficción se convierte en realidad y usa su conocimiento del argumento para sobrevivir.',
       'img': 'https://cdn.myanimelist.net/images/manga/2/246128.jpg',
+      'generos': ['Fantasía', 'Apocalipsis', 'Acción'],
+      'demografia': 'Seinen',
+      'episodios': 551,
     },
     {
       'titulo': 'Motosierra Man',
@@ -127,6 +148,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Denji, un joven cazador de demonios fusionado con su perro demonio Pochita, trabaja para una agencia gubernamental cazando demonios a cambio de una vida normal.',
       'img': 'https://cdn.myanimelist.net/images/anime/1806/126216.jpg',
+      'generos': ['Acción', 'Sobrenatural', 'Dark Fantasy'],
+      'demografia': 'Shounen',
+      'episodios': 12,
     },
     {
       'titulo': 'Vagabundo',
@@ -141,6 +165,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'La vida ficticia de Miyamoto Musashi, el legendario espadachín japonés, en su búsqueda de ser invencible bajo el cielo a través del camino de la espada.',
       'img': 'https://cdn.myanimelist.net/images/manga/1/259070.jpg',
+      'generos': ['Histórico', 'Artes marciales', 'Drama'],
+      'demografia': 'Seinen',
+      'episodios': 327,
     },
     {
       'titulo': 'Nobleza',
@@ -155,6 +182,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Cadis Etrama Di Raizel, un noble vampiro que lleva 820 años dormido, despierta en el mundo moderno y debe adaptarse mientras protege a los humanos.',
       'img': 'https://cdn.myanimelist.net/images/manga/2/266261.jpg',
+      'generos': ['Sobrenatural', 'Acción', 'Escolar'],
+      'demografia': 'Shounen',
+      'episodios': 544,
     },
   ];
 
@@ -172,6 +202,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'La humanidad vive encerrada en ciudades rodeadas de enormes muros para protegerse de los Titanes, gigantes que devoran humanos sin razón aparente.',
       'img': 'https://cdn.myanimelist.net/images/anime/1948/120625.jpg',
+      'generos': ['Acción', 'Drama', 'Fantasía oscura'],
+      'demografia': 'Shounen',
+      'episodios': 87,
     },
     {
       'titulo': 'Una Pieza',
@@ -186,6 +219,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Monkey D. Luffy y su tripulación navegan los mares en busca del legendario tesoro One Piece para que Luffy se convierta en el Rey de los Piratas.',
       'img': 'https://cdn.myanimelist.net/images/anime/6/73245.jpg',
+      'generos': ['Aventura', 'Comedia', 'Fantasía'],
+      'demografia': 'Shounen',
+      'episodios': 1100,
     },
     {
       'titulo': 'Berserk',
@@ -200,6 +236,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Guts, un mercenario solitario con una espada colosal, lucha contra demonios y su oscuro destino en un mundo medieval brutal lleno de magia y traición.',
       'img': 'https://cdn.myanimelist.net/images/manga/1/157897.jpg',
+      'generos': ['Dark Fantasy', 'Acción', 'Drama'],
+      'demografia': 'Seinen',
+      'episodios': 374,
     },
     {
       'titulo': 'Guardianes de la Noche',
@@ -214,6 +253,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Tanjiro Kamado se convierte en cazador de demonios para salvar a su hermana Nezuko, transformada en demonio, y vengar a su familia masacrada.',
       'img': 'https://cdn.myanimelist.net/images/anime/1286/99889.jpg',
+      'generos': ['Acción', 'Sobrenatural', 'Histórico'],
+      'demografia': 'Shounen',
+      'episodios': 44,
     },
     {
       'titulo': 'Jujutsu Kaisen',
@@ -228,6 +270,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Yuji Itadori ingresa al mundo de los hechiceros tras tragarse un dedo maldito, convirtiéndose en el recipiente del demonio más poderoso de la historia.',
       'img': 'https://cdn.myanimelist.net/images/anime/1171/109222.jpg',
+      'generos': ['Sobrenatural', 'Acción', 'Escolar'],
+      'demografia': 'Shounen',
+      'episodios': 48,
     },
     {
       'titulo': 'Alquimista de Acero',
@@ -242,6 +287,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Los hermanos Elric buscan la Piedra Filosofal para recuperar sus cuerpos perdidos tras un fallido intento de alquimia para revivir a su madre.',
       'img': 'https://cdn.myanimelist.net/images/anime/1223/96541.jpg',
+      'generos': ['Aventura', 'Fantasía', 'Drama'],
+      'demografia': 'Shounen',
+      'episodios': 64,
     },
     {
       'titulo': 'Hunter x Hunter',
@@ -256,6 +304,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Gon Freecss sueña con ser un Hunter como su padre desaparecido, embarcándose en un viaje lleno de peligros, amistades y poderes extraordinarios.',
       'img': 'https://cdn.myanimelist.net/images/anime/1337/99013.jpg',
+      'generos': ['Aventura', 'Acción', 'Fantasía'],
+      'demografia': 'Shounen',
+      'episodios': 148,
     },
     {
       'titulo': 'Slam Dunk',
@@ -270,6 +321,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Hanamichi Sakuragi, un chico problemático sin experiencia en baloncesto, se une al equipo de su instituto para conquistar a una chica y acaba enamorándose del deporte.',
       'img': 'https://cdn.myanimelist.net/images/manga/3/264166.jpg',
+      'generos': ['Deporte', 'Comedia', 'Drama'],
+      'demografia': 'Shounen',
+      'episodios': 276,
     },
     {
       'titulo': 'Naruto',
@@ -284,6 +338,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Naruto Uzumaki, un joven ninja con un demonio sellado en su interior, sueña con convertirse en Hokage para ganarse el respeto de su aldea.',
       'img': 'https://cdn.myanimelist.net/images/anime/13/17405.jpg',
+      'generos': ['Acción', 'Aventura', 'Comedia'],
+      'demografia': 'Shounen',
+      'episodios': 720,
     },
     {
       'titulo': 'Dragon Ball Z',
@@ -298,6 +355,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       'descripcion':
           'Goku y sus amigos defienden la Tierra de amenazas cada vez más poderosas mientras descubren el origen extraterrestre de los Saiyajines.',
       'img': 'https://cdn.myanimelist.net/images/anime/1607/117271.jpg',
+      'generos': ['Acción', 'Aventura', 'Comedia'],
+      'demografia': 'Shounen',
+      'episodios': 291,
     },
   ];
 
@@ -310,7 +370,7 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       TabInicio(tendencias: tendencias, populares: populares, esWeb: esWeb),
       TabDescubrir(todosLosItems: [...tendencias, ...populares], esWeb: esWeb),
       const TabPerfil(),
-      const TabMas(),
+      TabMas(todosLosProductos: [...tendencias, ...populares]),
     ];
 
     return Scaffold(
