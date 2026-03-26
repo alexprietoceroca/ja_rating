@@ -61,7 +61,7 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.hasData) {
           return PaginaPrincipal();
         }
-        return PaginaLogin();
+        return PaginaPrincipal();
       },
     );
   }

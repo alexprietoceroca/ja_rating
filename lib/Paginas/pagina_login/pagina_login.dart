@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:ja_rating/Paginas/pagina_principal/pagina_principal.dart';
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/boton_auth.dart';
 import 'package:ja_rating/Components/Login/text_field_autentificacion.dart';
 import 'package:ja_rating/Components/Login/texto_idiomas.dart';
 import 'package:ja_rating/Paginas/pagina_login/pagina_registro.dart';
+import 'package:ja_rating/Paginas/pagina_principal/pagina_principal.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PaginaLogin extends StatefulWidget {
   const PaginaLogin({super.key});
@@ -20,6 +23,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
   final _formKey = GlobalKey<FormState>();
   
   bool _isHovering = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -50,26 +54,96 @@ class _PaginaLoginState extends State<PaginaLogin> {
     return null;
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Iniciando sesión...',
-            style: TextStyle(color: Coloresapp.colorBlanco),
-          ),
-          backgroundColor: Coloresapp.colorPrimario,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      
-      // Simular login exitoso - solo mostramos mensaje, sin redirigir
-      print('Email: ${_emailController.text}');
-      print('Password: ${_passwordController.text}');
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        // Iniciar sesión con Firebase Auth
+        UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '¡Inicio de sesión exitoso!',
+                style: TextStyle(color: Coloresapp.colorBlanco),
+              ),
+              backgroundColor: Coloresapp.colorVerde,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              duration: const Duration(seconds: 1),
+            ),
+          );
+          
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const PaginaPrincipal()),
+              );
+            }
+          });
+        }
+      } on FirebaseAuthException catch (e) {
+        String mensajeError;
+        if (e.code == 'user-not-found') {
+          mensajeError = 'No existe usuario con este email';
+        } else if (e.code == 'wrong-password') {
+          mensajeError = 'Contraseña incorrecta';
+        } else if (e.code == 'invalid-email') {
+          mensajeError = 'El email no es válido';
+        } else if (e.code == 'user-disabled') {
+          mensajeError = 'Este usuario ha sido deshabilitado';
+        } else {
+          mensajeError = 'Error al iniciar sesión: ${e.message}';
+        }
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                mensajeError,
+                style: TextStyle(color: Coloresapp.colorBlanco),
+              ),
+              backgroundColor: Coloresapp.colorRojoOscuro,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Error inesperado: ${e.toString()}',
+                style: TextStyle(color: Coloresapp.colorBlanco),
+              ),
+              backgroundColor: Coloresapp.colorRojoOscuro,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -128,6 +202,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                         validator: _validateEmail,
                         esPassword: false, 
                         valorInicialOcultarEyeToggle: true,
+                        enabled: !_isLoading,
                       ),
                       
                       const SizedBox(height: 20),
@@ -140,6 +215,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                         validator: _validatePassword,
                         esPassword: true, 
                         valorInicialOcultarEyeToggle: true,
+                        enabled: !_isLoading,
                       ),
                       
                       const SizedBox(height: 15),
@@ -148,16 +224,20 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {
+                          onPressed: _isLoading ? null : () {
                             print('Navegar a recuperar contraseña');
                           },
                           style: TextButton.styleFrom(
-                            foregroundColor: Coloresapp.colorPrimario,
+                            foregroundColor: _isLoading 
+                                ? Coloresapp.colorTextoFlojo 
+                                : Coloresapp.colorPrimario,
                           ),
                           child: Text(
                             '¿Olvidaste tu contraseña?',
                             style: TextStyle(
-                              color: Coloresapp.colorPrimario,
+                              color: _isLoading 
+                                  ? Coloresapp.colorTextoFlojo 
+                                  : Coloresapp.colorPrimario,
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                             ),
@@ -167,22 +247,24 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 30),
                       
-                      // Botón de login con efecto hover
+                      // Botón de login con efecto hover y loading
                       MouseRegion(
-                        onEnter: (_) => setState(() => _isHovering = true),
-                        onExit: (_) => setState(() => _isHovering = false),
+                        onEnter: _isLoading ? null : (_) => setState(() => _isHovering = true),
+                        onExit: _isLoading ? null : (_) => setState(() => _isHovering = false),
                         child: GestureDetector(
-                          onTap: _handleLogin,
+                          onTap: _isLoading ? null : _handleLogin,
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             width: double.infinity,
                             height: 55,
                             decoration: BoxDecoration(
-                              color: _isHovering 
-                                  ? Coloresapp.colorNaranja.withOpacity(0.9)
-                                  : Coloresapp.colorNaranja,
+                              color: _isLoading 
+                                  ? Coloresapp.colorNaranja.withOpacity(0.5)
+                                  : (_isHovering 
+                                      ? Coloresapp.colorNaranja.withOpacity(0.9)
+                                      : Coloresapp.colorNaranja),
                               borderRadius: BorderRadius.circular(30),
-                              boxShadow: _isHovering
+                              boxShadow: _isHovering && !_isLoading
                                   ? [
                                       BoxShadow(
                                         color: Coloresapp.colorNaranja.withOpacity(0.5),
@@ -199,15 +281,24 @@ class _PaginaLoginState extends State<PaginaLogin> {
                                     ],
                             ),
                             child: Center(
-                              child: Text(
-                                'ENTRAR',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
+                              child: _isLoading
+                                  ? SizedBox(
+                                      height: 30,
+                                      width: 30,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 3,
+                                      ),
+                                    )
+                                  : Text(
+                                      'ENTRAR',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
                             ),
                           ),
                         ),
@@ -253,17 +344,17 @@ class _PaginaLoginState extends State<PaginaLogin> {
                         children: [
                           _buildSocialButton(
                             icon: Icons.g_mobiledata_rounded,
-                            onTap: () => print('Login con Google'),
+                            onTap: _isLoading ? null : () => print('Login con Google'),
                           ),
                           const SizedBox(width: 20),
                           _buildSocialButton(
                             icon: Icons.facebook_rounded,
-                            onTap: () => print('Login con Facebook'),
+                            onTap: _isLoading ? null : () => print('Login con Facebook'),
                           ),
                           const SizedBox(width: 20),
                           _buildSocialButton(
                             icon: Icons.apple_rounded,
-                            onTap: () => print('Login con Apple'),
+                            onTap: _isLoading ? null : () => print('Login con Apple'),
                           ),
                         ],
                       ),
@@ -282,7 +373,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {
+                            onTap: _isLoading ? null : () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => const PaginaRegistro()),
@@ -291,11 +382,15 @@ class _PaginaLoginState extends State<PaginaLogin> {
                             child: Text(
                               'Regístrate',
                               style: TextStyle(
-                                color: Coloresapp.colorPrimario,
+                                color: _isLoading 
+                                    ? Coloresapp.colorTextoFlojo 
+                                    : Coloresapp.colorPrimario,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
                                 decoration: TextDecoration.underline,
-                                decorationColor: Coloresapp.colorPrimarioAccentuado,
+                                decorationColor: _isLoading 
+                                    ? Coloresapp.colorTextoFlojo
+                                    : Coloresapp.colorPrimarioAccentuado,
                                 decorationThickness: 2,
                               ),
                             ),
@@ -313,20 +408,20 @@ class _PaginaLoginState extends State<PaginaLogin> {
     );
   }
 
-  Widget _buildSocialButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _buildSocialButton({required IconData icon, required VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: Coloresapp.colorBlanco,
+          color: Coloresapp.colorBlanco.withOpacity(onTap == null ? 0.3 : 1.0),
           shape: BoxShape.circle,
           border: Border.all(
             color: Coloresapp.colorContorno.withOpacity(0.2),
             width: 1,
           ),
-          boxShadow: [
+          boxShadow: onTap == null ? [] : [
             BoxShadow(
               color: Coloresapp.colorSombraCard,
               blurRadius: 8,
@@ -337,7 +432,9 @@ class _PaginaLoginState extends State<PaginaLogin> {
         child: Icon(
           icon,
           size: 35,
-          color: Coloresapp.colorPrimario,
+          color: onTap == null 
+              ? Coloresapp.colorTextoFlojo 
+              : Coloresapp.colorPrimario,
         ),
       ),
     );
