@@ -1,3 +1,4 @@
+// seccion_con_scroll.dart
 import 'package:flutter/material.dart';
 import 'package:ja_rating/coloresApp.dart';
 import 'package:ja_rating/Components/pagina_principal/productos_cartas.dart';
@@ -69,11 +70,8 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
   Widget build(BuildContext context) {
     final double anchoCarta = widget.esWeb ? 200 : 200;
     final double padding = widget.esWeb ? 40 : 20;
-
-    // altura imagen + padding arriba + titulo + genero + estrellas + padding abajo
-    final double altoImagen = anchoCarta * 1.25;
-    final double altoInfo = 10 + 36 + 4 + 16 + 6 + 16 + 10;
-    final double altoCarta = altoImagen + altoInfo;
+    // Usamos el método estático para calcular la altura (sin extras)
+    final double altoCarta = ProductosCarta.calcularAltura(anchoCarta, mostrarExtra: false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,10 +84,12 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
               const SizedBox(width: 8),
               Text(
                 widget.titulo,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF111111),
+                  foreground: Paint()
+                    ..blendMode = BlendMode.difference
+                    ..color = Colors.white,
                 ),
               ),
               if (widget.etiqueta != null) ...[
@@ -160,6 +160,7 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
                 urlImagen: widget.items[i]['img'],
                 descripcion: widget.items[i]['descripcion'],
                 anchoCarta: anchoCarta,
+                // No pasamos autor, anio, estudio para que no se muestren
               );
             },
           ),

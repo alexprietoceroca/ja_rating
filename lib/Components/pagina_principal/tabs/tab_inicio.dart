@@ -82,16 +82,22 @@ class _TabInicioState extends State<TabInicio> {
 
           // ── BRUSH FIJO — de esquina superior derecha a esquina inferior izquierda ──
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            top: widget.esWeb
+                ? -pantalla.height * -0.15
+                : pantalla.height * 0.25,
+            bottom: widget.esWeb
+                ? -pantalla.height * -0.15
+                : pantalla.height * 0.25,
+            left: widget.esWeb ? pantalla.width * -0.15 : -pantalla.width * 0.4,
+            right: widget.esWeb
+                ? pantalla.width * -0.15
+                : -pantalla.width * 0.4,
             child: IgnorePointer(
               child: Transform.rotate(
                 angle: -0.7854,
                 child: Image.asset(
                   'assets/imagenes/brush.png',
-                  fit: BoxFit.fill,
+                  fit: widget.esWeb ? BoxFit.fitHeight : BoxFit.fitWidth,
                 ),
               ),
             ),

@@ -1,3 +1,4 @@
+// tab_descubrir.dart
 import 'package:flutter/material.dart';
 import 'package:ja_rating/coloresApp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
@@ -35,6 +36,10 @@ class _TabDescubrirState extends State<TabDescubrir> {
 
     final int columnas = widget.esWeb ? 4 : 2;
     final double padding = widget.esWeb ? 40 : 20;
+    // Ancho de carta aproximado para calcular aspect ratio
+    final double anchoCarta = widget.esWeb ? 180 : 100; // Puedes ajustar
+    final double altoCarta = ProductosCarta.calcularAltura(anchoCarta, mostrarExtra: true);
+    final double aspectRatio = anchoCarta / altoCarta;
 
     return SafeArea(
       child: Column(
@@ -49,7 +54,7 @@ class _TabDescubrirState extends State<TabDescubrir> {
             padding: EdgeInsets.symmetric(horizontal: padding),
             child: Container(
               decoration: BoxDecoration(
-                color: Coloresapp.colorSombraNav,
+                color: Coloresapp.colorBlanco,
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
@@ -115,7 +120,7 @@ class _TabDescubrirState extends State<TabDescubrir> {
                 crossAxisCount: columnas,
                 crossAxisSpacing: 14,
                 mainAxisSpacing: 14,
-                childAspectRatio: 0.6,
+                childAspectRatio: aspectRatio,
               ),
               itemCount: filtrados.length,
               itemBuilder: (context, i) {
@@ -128,6 +133,10 @@ class _TabDescubrirState extends State<TabDescubrir> {
                   puntuacion: filtrados[i]['puntuacion'].toDouble(),
                   urlImagen: filtrados[i]['img'],
                   descripcion: filtrados[i]['descripcion'],
+                  mostrarExtra: true,
+                  autor: filtrados[i]['autor'] ?? '',
+                  anio: filtrados[i]['anio'] ?? 0,
+                  estudio: filtrados[i]['estudio'] ?? '',
                 );
               },
             ),

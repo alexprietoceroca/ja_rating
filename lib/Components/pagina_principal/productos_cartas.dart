@@ -1,8 +1,15 @@
+// productos_cartas.dart
+// Versión con información extra (autor, año, estudio) en la cara trasera
+// Alturas reducidas para que las cartas sean más compactas
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
-import 'package:ja_rating/coloresApp.dart';
+import 'package:ja_rating/coloresApp.dart'; // Ajusta la ruta si es necesario
 
+// ------------------------------------------------------------
+// Controlador global para la animación de cambio de idioma
+// ------------------------------------------------------------
 class _ControladorIdioma {
   static final _ControladorIdioma _instancia = _ControladorIdioma._interno();
   factory _ControladorIdioma() => _instancia;
@@ -37,6 +44,9 @@ class _ControladorIdioma {
   }
 }
 
+// ------------------------------------------------------------
+// Widget principal de la carta
+// ------------------------------------------------------------
 class ProductosCarta extends StatefulWidget {
   final String titulo;
   final String tituloIngles;
@@ -47,6 +57,10 @@ class ProductosCarta extends StatefulWidget {
   final String urlImagen;
   final double anchoCarta;
   final String descripcion;
+  final bool mostrarExtra;
+  final String autor;
+  final int anio;
+  final String estudio;
 
   const ProductosCarta({
     super.key,
@@ -58,8 +72,24 @@ class ProductosCarta extends StatefulWidget {
     required this.puntuacion,
     required this.urlImagen,
     required this.descripcion,
-    this.anchoCarta = 185,
+    this.anchoCarta = 200,
+    this.mostrarExtra = false,
+    this.autor = '',
+    this.anio = 0,
+    this.estudio = '',
   });
+
+  /// Método estático para calcular la altura total de la carta
+  static double calcularAltura(double ancho, {bool mostrarExtra = false}) {
+    final double altoImagen = ancho * 1.25;
+    if (mostrarExtra) {
+      // Altura para cara trasera con extras (autor, año, estudio) - más compacta
+      return altoImagen + 60;
+    } else {
+      // Altura para cara trasera sin extras (solo sinopsis)
+      return altoImagen + 130;
+    }
+  }
 
   @override
   State<ProductosCarta> createState() => _ProductosCartaState();
@@ -106,91 +136,79 @@ class _ProductosCartaState extends State<ProductosCarta>
     }
   }
 
-  List<MensajeTipo> get _mensajesTipo {
+  List<MensajeIdioma> get _mensajesTipo {
     switch (widget.tipo) {
       case 'Anime':
         return [
-          MensajeTipo(texto: 'Anime', estilo: null),
-          MensajeTipo(texto: 'Anime', estilo: null),
-          MensajeTipo(texto: 'アニメ', estilo: GoogleFonts.notoSansJp()),
+          MensajeIdioma(texto: 'Anime', estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: 'Anime', estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: 'アニメ', estilo: GoogleFonts.notoSansJp()),
         ];
       case 'Manga':
         return [
-          MensajeTipo(texto: 'Manga', estilo: null),
-          MensajeTipo(texto: 'Manga', estilo: null),
-          MensajeTipo(texto: 'マンガ', estilo: GoogleFonts.notoSansJp()),
+          MensajeIdioma(texto: 'Manga', estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: 'Manga', estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: 'マンガ', estilo: GoogleFonts.notoSansJp()),
         ];
       case 'Manhwa':
         return [
-          MensajeTipo(texto: 'Manhwa', estilo: null),
-          MensajeTipo(texto: 'Manhwa', estilo: null),
-          MensajeTipo(texto: '만화', estilo: GoogleFonts.notoSansKr()),
+          MensajeIdioma(texto: 'Manhwa', estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: 'Manhwa', estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: '만화', estilo: GoogleFonts.notoSansKr()),
         ];
       case 'Manhua':
         return [
-          MensajeTipo(texto: 'Manhua', estilo: null),
-          MensajeTipo(texto: 'Manhua', estilo: null),
-          MensajeTipo(texto: '漫画', estilo: GoogleFonts.notoSansSc()),
+          MensajeIdioma(texto: 'Manhua', estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: 'Manhua', estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: '漫画', estilo: GoogleFonts.notoSansSc()),
         ];
       case 'Donghua':
         return [
-          MensajeTipo(texto: 'Donghua', estilo: null),
-          MensajeTipo(texto: 'Donghua', estilo: null),
-          MensajeTipo(texto: '动画', estilo: GoogleFonts.notoSansSc()),
+          MensajeIdioma(texto: 'Donghua', estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: 'Donghua', estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: '动画', estilo: GoogleFonts.notoSansSc()),
         ];
       default:
         return [
-          MensajeTipo(texto: widget.tipo, estilo: null),
-          MensajeTipo(texto: widget.tipo, estilo: null),
-          MensajeTipo(texto: widget.tipo, estilo: null),
+          MensajeIdioma(texto: widget.tipo, estilo: null),
+          MensajeIdioma(texto: widget.tipo, estilo: null),
+          MensajeIdioma(texto: widget.tipo, estilo: null),
         ];
     }
   }
 
-  List<MensajeTipo> get _mensajesTitulo {
+  List<MensajeIdioma> get _mensajesTitulo {
     switch (widget.tipo) {
       case 'Anime':
       case 'Manga':
         return [
-          MensajeTipo(texto: widget.titulo, estilo: null),
-          MensajeTipo(texto: widget.tituloIngles, estilo: null),
-          MensajeTipo(
-            texto: widget.tituloOriginal,
-            estilo: GoogleFonts.notoSansJp(),
-          ),
+          MensajeIdioma(texto: widget.titulo, estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: widget.tituloIngles, estilo: GoogleFonts.oswald()),
+          MensajeIdioma(
+              texto: widget.tituloOriginal, estilo: GoogleFonts.notoSansJp()),
         ];
       case 'Manhwa':
         return [
-          MensajeTipo(texto: widget.titulo, estilo: null),
-          MensajeTipo(texto: widget.tituloIngles, estilo: null),
-          MensajeTipo(
-            texto: widget.tituloOriginal,
-            estilo: GoogleFonts.notoSansKr(),
-          ),
+          MensajeIdioma(texto: widget.titulo, estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: widget.tituloIngles, estilo: GoogleFonts.oswald()),
+          MensajeIdioma(
+              texto: widget.tituloOriginal, estilo: GoogleFonts.notoSansKr()),
         ];
       case 'Manhua':
       case 'Donghua':
         return [
-          MensajeTipo(texto: widget.titulo, estilo: null),
-          MensajeTipo(texto: widget.tituloIngles, estilo: null),
-          MensajeTipo(
-            texto: widget.tituloOriginal,
-            estilo: GoogleFonts.notoSansSc(),
-          ),
+          MensajeIdioma(texto: widget.titulo, estilo: GoogleFonts.oswald()),
+          MensajeIdioma(texto: widget.tituloIngles, estilo: GoogleFonts.oswald()),
+          MensajeIdioma(
+              texto: widget.tituloOriginal, estilo: GoogleFonts.notoSansSc()),
         ];
       default:
         return [
-          MensajeTipo(texto: widget.titulo, estilo: null),
-          MensajeTipo(texto: widget.tituloIngles, estilo: null),
-          MensajeTipo(texto: widget.tituloOriginal, estilo: null),
+          MensajeIdioma(texto: widget.titulo, estilo: null),
+          MensajeIdioma(texto: widget.tituloIngles, estilo: null),
+          MensajeIdioma(texto: widget.tituloOriginal, estilo: null),
         ];
     }
-  }
-
-  double get _alturaCarta {
-    final double altoImagen = widget.anchoCarta * 1.25;
-    final double altoInfo = 10 + 36 + 4 + 16 + 6 + 16 + 10;
-    return altoImagen + altoInfo;
   }
 
   @override
@@ -228,7 +246,15 @@ class _ProductosCartaState extends State<ProductosCarta>
                       descripcion: widget.descripcion,
                       colorTipo: colorTipo,
                       anchoCarta: widget.anchoCarta,
-                      altura: _alturaCarta,
+                      altura: ProductosCarta.calcularAltura(
+                        widget.anchoCarta,
+                        mostrarExtra: widget.mostrarExtra,
+                      ),
+                      // Pasamos los campos extra
+                      autor: widget.autor,
+                      anio: widget.anio,
+                      estudio: widget.estudio,
+                      mostrarExtra: widget.mostrarExtra,
                     ),
                   )
                 : _CaraDelantera(
@@ -239,6 +265,7 @@ class _ProductosCartaState extends State<ProductosCarta>
                     urlImagen: widget.urlImagen,
                     colorTipo: colorTipo,
                     anchoCarta: widget.anchoCarta,
+                    // Ya no necesitamos mostrarExtra aquí
                   ),
           );
         },
@@ -247,9 +274,12 @@ class _ProductosCartaState extends State<ProductosCarta>
   }
 }
 
+// ------------------------------------------------------------
+// Cara delantera (sin información extra)
+// ------------------------------------------------------------
 class _CaraDelantera extends StatelessWidget {
-  final List<MensajeTipo> mensajesTipo;
-  final List<MensajeTipo> mensajesTitulo;
+  final List<MensajeIdioma> mensajesTipo;
+  final List<MensajeIdioma> mensajesTitulo;
   final String genero;
   final double puntuacion;
   final String urlImagen;
@@ -290,9 +320,8 @@ class _CaraDelantera extends StatelessWidget {
           Stack(
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
                 child: Image.network(
                   urlImagen,
                   height: anchoCarta * 1.25,
@@ -302,11 +331,8 @@ class _CaraDelantera extends StatelessWidget {
                     height: anchoCarta * 1.25,
                     width: anchoCarta,
                     color: Coloresapp.colorPrimario,
-                    child: const Icon(
-                      Icons.image_not_supported_rounded,
-                      color: Colors.white,
-                      size: 40,
-                    ),
+                    child: const Icon(Icons.image_not_supported_rounded,
+                        color: Colors.white, size: 40),
                   ),
                 ),
               ),
@@ -327,10 +353,7 @@ class _CaraDelantera extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _TituloAnimado(
-                  mensajes: mensajesTitulo,
-                  anchoCarta: anchoCarta,
-                ),
-                const SizedBox(height: 4),
+                    mensajes: mensajesTitulo, anchoCarta: anchoCarta),
                 Text(
                   genero,
                   style: const TextStyle(
@@ -341,7 +364,7 @@ class _CaraDelantera extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 _EstrellasPuntuacion(puntuacion: puntuacion),
               ],
             ),
@@ -352,6 +375,9 @@ class _CaraDelantera extends StatelessWidget {
   }
 }
 
+// ------------------------------------------------------------
+// Cara trasera (sinopsis + información extra opcional)
+// ------------------------------------------------------------
 class _CaraDetras extends StatelessWidget {
   final String titulo;
   final String genero;
@@ -359,6 +385,10 @@ class _CaraDetras extends StatelessWidget {
   final Color colorTipo;
   final double anchoCarta;
   final double altura;
+  final String autor;
+  final int anio;
+  final String estudio;
+  final bool mostrarExtra;
 
   const _CaraDetras({
     required this.titulo,
@@ -367,6 +397,10 @@ class _CaraDetras extends StatelessWidget {
     required this.colorTipo,
     required this.anchoCarta,
     required this.altura,
+    required this.autor,
+    required this.anio,
+    required this.estudio,
+    required this.mostrarExtra,
   });
 
   @override
@@ -396,72 +430,136 @@ class _CaraDetras extends StatelessWidget {
           Positioned.fill(
             child: Padding(
               padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Etiqueta de género
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        genero.toUpperCase(),
+                        style: const TextStyle(
+                          fontFamily: 'HoshikoSatsuki',
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1,
+                        ),
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      genero.toUpperCase(),
+                    const SizedBox(height: 12),
+                    // Título
+                    Text(
+                      titulo,
                       style: const TextStyle(
                         fontFamily: 'HoshikoSatsuki',
                         color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        height: 1.2,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    titulo,
-                    style: const TextStyle(
-                      fontFamily: 'HoshikoSatsuki',
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      height: 1.2,
+                    const SizedBox(height: 10),
+                    // Línea separadora
+                    Container(height: 1, color: Colors.white.withOpacity(0.3)),
+                    const SizedBox(height: 10),
+                    // Sinopsis
+                    Text(
+                      descripcion,
+                      style: TextStyle(
+                        fontFamily: 'HoshikoSatsuki',
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 11,
+                        height: 1.4,
+                      ),
+                      maxLines: 4, // Reducido a 4 líneas para ahorrar espacio
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 10),
-                  Container(height: 1, color: Colors.white.withOpacity(0.3)),
-                  const SizedBox(height: 10),
-                  Text(
-                    descripcion,
-                    style: TextStyle(
-                      fontFamily: 'HoshikoSatsuki',
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 11,
-                      height: 1.4,
-                    ),
-                    maxLines: 6,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                    // Información extra (solo si mostrarExtra es true)
+                    if (mostrarExtra) ...[
+                      const SizedBox(height: 10),
+                      // Autor
+                      Row(
+                        children: [
+                          Icon(Icons.person_outline_rounded,
+                              size: 12, color: Colors.white.withOpacity(0.8)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              autor,
+                              style: TextStyle(
+                                fontFamily: 'HoshikoSatsuki',
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 10,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      // Año
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today_rounded,
+                              size: 11, color: Colors.white.withOpacity(0.8)),
+                          const SizedBox(width: 6),
+                          Text(
+                            anio.toString(),
+                            style: TextStyle(
+                              fontFamily: 'HoshikoSatsuki',
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      // Estudio
+                      Row(
+                        children: [
+                          Icon(Icons.business_center_rounded,
+                              size: 11, color: Colors.white.withOpacity(0.8)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              estudio,
+                              style: TextStyle(
+                                fontFamily: 'HoshikoSatsuki',
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 10,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
+          // Mensaje de doble click para volver
           Positioned(
             bottom: 14,
             left: 14,
             right: 14,
             child: Row(
               children: [
-                Icon(
-                  Icons.touch_app_rounded,
-                  color: Colors.white.withOpacity(0.6),
-                  size: 12,
-                ),
+                Icon(Icons.touch_app_rounded,
+                    color: Colors.white.withOpacity(0.6), size: 12),
                 const SizedBox(width: 4),
                 Flexible(
                   child: Text(
@@ -483,14 +581,15 @@ class _CaraDetras extends StatelessWidget {
   }
 }
 
+// ------------------------------------------------------------
+// Etiqueta del tipo (animada)
+// ------------------------------------------------------------
 class _EtiquetaTipoAnimada extends StatefulWidget {
-  final List<MensajeTipo> mensajes;
+  final List<MensajeIdioma> mensajes;
   final Color colorFondo;
 
-  const _EtiquetaTipoAnimada({
-    required this.mensajes,
-    required this.colorFondo,
-  });
+  const _EtiquetaTipoAnimada(
+      {required this.mensajes, required this.colorFondo});
 
   @override
   State<_EtiquetaTipoAnimada> createState() => _EtiquetaTipoAnimadaState();
@@ -509,10 +608,9 @@ class _EtiquetaTipoAnimadaState extends State<_EtiquetaTipoAnimada>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
     _indiceActual = _ControladorIdioma().indiceActual;
     _controller.forward();
     _ControladorIdioma().agregarOyente(_alCambiarIdioma);
@@ -522,9 +620,7 @@ class _EtiquetaTipoAnimadaState extends State<_EtiquetaTipoAnimada>
     if (!mounted) return;
     _controller.reverse().then((_) {
       if (mounted) {
-        setState(() {
-          _indiceActual = _ControladorIdioma().indiceActual;
-        });
+        setState(() => _indiceActual = _ControladorIdioma().indiceActual);
         _controller.forward();
       }
     });
@@ -550,10 +646,9 @@ class _EtiquetaTipoAnimadaState extends State<_EtiquetaTipoAnimada>
         ),
         child: Text(
           mensaje.texto,
-          style:
-              mensaje.estilo?.copyWith(
+          style: mensaje.estilo?.copyWith(
                 color: Colors.white,
-                fontSize: 9,
+                fontSize: 16,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.5,
               ) ??
@@ -570,8 +665,11 @@ class _EtiquetaTipoAnimadaState extends State<_EtiquetaTipoAnimada>
   }
 }
 
+// ------------------------------------------------------------
+// Título animado
+// ------------------------------------------------------------
 class _TituloAnimado extends StatefulWidget {
-  final List<MensajeTipo> mensajes;
+  final List<MensajeIdioma> mensajes;
   final double anchoCarta;
 
   const _TituloAnimado({required this.mensajes, required this.anchoCarta});
@@ -593,10 +691,9 @@ class _TituloAnimadoState extends State<_TituloAnimado>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
     _indiceActual = _ControladorIdioma().indiceActual;
     _controller.forward();
     _ControladorIdioma().agregarOyente(_alCambiarIdioma);
@@ -606,9 +703,7 @@ class _TituloAnimadoState extends State<_TituloAnimado>
     if (!mounted) return;
     _controller.reverse().then((_) {
       if (mounted) {
-        setState(() {
-          _indiceActual = _ControladorIdioma().indiceActual;
-        });
+        setState(() => _indiceActual = _ControladorIdioma().indiceActual);
         _controller.forward();
       }
     });
@@ -625,17 +720,16 @@ class _TituloAnimadoState extends State<_TituloAnimado>
   Widget build(BuildContext context) {
     final mensaje = widget.mensajes[_indiceActual];
     return SizedBox(
-      height: 36,
+      height: 40,
       width: widget.anchoCarta - 20,
       child: OverflowBox(
-        maxHeight: 36,
+        maxHeight: 40,
         alignment: Alignment.centerLeft,
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: Text(
             mensaje.texto,
-            style:
-                mensaje.estilo?.copyWith(
+            style: mensaje.estilo?.copyWith(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: const Color(0xFF111111),
@@ -657,6 +751,9 @@ class _TituloAnimadoState extends State<_TituloAnimado>
   }
 }
 
+// ------------------------------------------------------------
+// Estrellas de puntuación
+// ------------------------------------------------------------
 class _EstrellasPuntuacion extends StatelessWidget {
   final double puntuacion;
 
@@ -669,17 +766,11 @@ class _EstrellasPuntuacion extends StatelessWidget {
         ...List.generate(5, (i) {
           final double valorEstrella = puntuacion - i;
           if (valorEstrella >= 1) {
-            return Icon(
-              Icons.star_rounded,
-              size: 14,
-              color: Coloresapp.colorPrimario,
-            );
+            return Icon(Icons.star_rounded,
+                size: 14, color: Coloresapp.colorPrimario);
           } else if (valorEstrella <= 0) {
-            return Icon(
-              Icons.star_outline_rounded,
-              size: 14,
-              color: Colors.grey.shade300,
-            );
+            return Icon(Icons.star_outline_rounded,
+                size: 14, color: Colors.grey.shade300);
           } else {
             return _EstrellaFraccion(fraccion: valorEstrella);
           }
@@ -699,6 +790,9 @@ class _EstrellasPuntuacion extends StatelessWidget {
   }
 }
 
+// ------------------------------------------------------------
+// Estrella fraccionaria
+// ------------------------------------------------------------
 class _EstrellaFraccion extends StatelessWidget {
   final double fraccion;
 
@@ -711,20 +805,14 @@ class _EstrellaFraccion extends StatelessWidget {
       height: 14,
       child: Stack(
         children: [
-          Icon(
-            Icons.star_outline_rounded,
-            size: 14,
-            color: Colors.grey.shade300,
-          ),
+          Icon(Icons.star_outline_rounded,
+              size: 14, color: Colors.grey.shade300),
           ClipRect(
             child: Align(
               alignment: Alignment.centerLeft,
               widthFactor: fraccion,
-              child: Icon(
-                Icons.star_rounded,
-                size: 14,
-                color: Coloresapp.colorPrimario,
-              ),
+              child: Icon(Icons.star_rounded,
+                  size: 14, color: Coloresapp.colorPrimario),
             ),
           ),
         ],
@@ -733,9 +821,12 @@ class _EstrellaFraccion extends StatelessWidget {
   }
 }
 
-class MensajeTipo {
+// ------------------------------------------------------------
+// Modelo para mensajes con estilo
+// ------------------------------------------------------------
+class MensajeIdioma {
   final String texto;
   final TextStyle? estilo;
 
-  MensajeTipo({required this.texto, this.estilo});
+  MensajeIdioma({required this.texto, this.estilo});
 }
