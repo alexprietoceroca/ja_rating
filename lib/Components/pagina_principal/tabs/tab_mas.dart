@@ -1,9 +1,13 @@
+// tab_mas.dart
 import 'package:flutter/material.dart';
 import 'package:ja_rating/coloresApp.dart';
-import 'package:ja_rating/components/Login/texto_normal.dart';
+import 'package:ja_rating/Components/Login/texto_normal.dart';
+import 'package:ja_rating/Paginas/pagina_tierlist.dart'; // <-- AÑADIDO
 
 class TabMas extends StatelessWidget {
-  const TabMas({super.key});
+  final List<Map<String, dynamic>> todosLosProductos; // <-- NUEVO PARÁMETRO
+
+  const TabMas({super.key, required this.todosLosProductos});
 
   @override
   Widget build(BuildContext context) {
@@ -28,11 +32,21 @@ class TabMas extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _CartaFuncionalidad(
-                    icono: Icons.emoji_events_rounded,
-                    etiqueta: 'Tier Lists',
-                    descripcion: 'Crea y comparte tus rankings',
-                    color: Coloresapp.colorNaranja,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PaginaTierlist(todosLosProductos: todosLosProductos),
+                        ),
+                      );
+                    },
+                    child: _CartaFuncionalidad(
+                      icono: Icons.emoji_events_rounded,
+                      etiqueta: 'Tier Lists',
+                      descripcion: 'Crea y comparte tus rankings',
+                      color: Coloresapp.colorNaranja,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 14),
