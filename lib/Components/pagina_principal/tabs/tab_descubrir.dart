@@ -1,5 +1,6 @@
 // tab_descubrir.dart
 import 'package:flutter/material.dart';
+import 'package:ja_rating/Paginas/pagina_producto.dart';
 import 'package:ja_rating/coloresApp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
 import 'package:ja_rating/Components/pagina_principal/productos_cartas.dart';
@@ -21,7 +22,14 @@ class TabDescubrir extends StatefulWidget {
 class _TabDescubrirState extends State<TabDescubrir> {
   String busqueda = '';
   String filtro = 'Todo';
-  final List<String> filtros = ['Todo', 'Anime', 'Manga', 'Manhwa', 'Manhua', 'Donghua'];
+  final List<String> filtros = [
+    'Todo',
+    'Anime',
+    'Manga',
+    'Manhwa',
+    'Manhua',
+    'Donghua',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +46,10 @@ class _TabDescubrirState extends State<TabDescubrir> {
     final double padding = widget.esWeb ? 40 : 20;
     // Ancho de carta aproximado para calcular aspect ratio
     final double anchoCarta = widget.esWeb ? 180 : 100; // Puedes ajustar
-    final double altoCarta = ProductosCarta.calcularAltura(anchoCarta, mostrarExtra: true);
+    final double altoCarta = ProductosCarta.calcularAltura(
+      anchoCarta,
+      mostrarExtra: true,
+    );
     final double aspectRatio = anchoCarta / altoCarta;
 
     return SafeArea(
@@ -67,8 +78,14 @@ class _TabDescubrirState extends State<TabDescubrir> {
                 onChanged: (v) => setState(() => busqueda = v),
                 decoration: const InputDecoration(
                   hintText: 'Buscar en español, inglés u original...',
-                  hintStyle: TextStyle(color: Coloresapp.colorTextoFlojo, fontSize: 14),
-                  prefixIcon: Icon(Icons.search_rounded, color: Coloresapp.colorPrimario),
+                  hintStyle: TextStyle(
+                    color: Coloresapp.colorTextoFlojo,
+                    fontSize: 14,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: Coloresapp.colorPrimario,
+                  ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(vertical: 14),
                 ),
@@ -88,9 +105,14 @@ class _TabDescubrirState extends State<TabDescubrir> {
                   onTap: () => setState(() => filtro = filtros[i]),
                   child: Container(
                     margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: activo ? Coloresapp.colorPrimario : Coloresapp.colorBlanco,
+                      color: activo
+                          ? Coloresapp.colorPrimario
+                          : Coloresapp.colorBlanco,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
@@ -102,7 +124,9 @@ class _TabDescubrirState extends State<TabDescubrir> {
                     child: Text(
                       filtros[i],
                       style: TextStyle(
-                        color: activo ? Coloresapp.colorBlanco : Coloresapp.colorTexto,
+                        color: activo
+                            ? Coloresapp.colorBlanco
+                            : Coloresapp.colorTexto,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
@@ -137,6 +161,14 @@ class _TabDescubrirState extends State<TabDescubrir> {
                   autor: filtrados[i]['autor'] ?? '',
                   anio: filtrados[i]['anio'] ?? 0,
                   estudio: filtrados[i]['estudio'] ?? '',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PaginaProducto(producto: filtrados[i]),
+                      ),
+                    );
+                  },
                 );
               },
             ),
