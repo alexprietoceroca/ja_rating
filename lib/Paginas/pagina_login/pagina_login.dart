@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ja_rating/Paginas/pagina_principal/pagina_principal.dart';
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/boton_auth.dart';
 import 'package:ja_rating/Components/Login/text_field_autentificacion.dart';
 import 'package:ja_rating/Components/Login/texto_idiomas.dart';
 import 'package:ja_rating/Paginas/pagina_login/pagina_registro.dart';
-import 'package:ja_rating/Paginas/pagina_principal/pagina_principal.dart';
+import 'package:ja_rating/Paginas/pagina_principal.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class PaginaLogin extends StatefulWidget {
@@ -61,7 +60,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
       });
 
       try {
-        // Iniciar sesión con Firebase Auth
         UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
@@ -153,12 +151,10 @@ class _PaginaLoginState extends State<PaginaLogin> {
       backgroundColor: Coloresapp.colorFonsInici,
       body: Stack(
         children: [
-          // Fondo negro sólido
           Container(
             color: Coloresapp.colorFonsInici,
           ),
           
-          // Contenido principal
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -169,12 +165,9 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Espacio donde estaba el logo
                       const SizedBox(height: 120),
-                      
                       const SizedBox(height: 30),
                       
-                      // Widget animado de bienvenida en múltiples idiomas - ROJO
                       TextoIdiomas(
                         duracionAnimacion: const Duration(milliseconds: 800),
                         duracionPausa: const Duration(seconds: 2),
@@ -194,7 +187,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 40),
                       
-                      // Campo de email
                       TextFieldAutentificacion(
                         controllerText: _emailController,
                         hintText: 'Correo electrónico',
@@ -207,7 +199,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 20),
                       
-                      // Campo de contraseña
                       TextFieldAutentificacion(
                         controllerText: _passwordController,
                         hintText: 'Contraseña',
@@ -220,7 +211,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 15),
                       
-                      // Enlace "¿Olvidaste tu contraseña?"
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
@@ -247,7 +237,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 30),
                       
-                      // Botón de login con efecto hover y loading
                       MouseRegion(
                         onEnter: _isLoading ? null : (_) => setState(() => _isHovering = true),
                         onExit: _isLoading ? null : (_) => setState(() => _isHovering = false),
@@ -306,7 +295,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 40),
                       
-                      // Separador "o"
                       Row(
                         children: [
                           Expanded(
@@ -338,7 +326,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 30),
                       
-                      // Botones sociales
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -361,7 +348,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 30),
                       
-                      // Enlace de registro - REDIRIGE A PAGINA_REGISTRO
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
