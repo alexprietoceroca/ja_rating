@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ja_rating/Paginas/pagina_principal/pagina_principal.dart';
+import 'package:ja_rating/Paginas/pagina_principal.dart';
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/boton_auth.dart';
 import 'package:ja_rating/Components/Login/text_field_autentificacion.dart';
 import 'package:ja_rating/Components/Login/texto_idiomas.dart';
 import 'package:ja_rating/Paginas/pagina_login/pagina_registro.dart';
-import 'package:ja_rating/Paginas/pagina_principal/pagina_principal.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class PaginaLogin extends StatefulWidget {

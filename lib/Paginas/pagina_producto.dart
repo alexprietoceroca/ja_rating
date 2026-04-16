@@ -1,8 +1,9 @@
 // pagina_producto.dart
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ja_rating/coloresApp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
-import 'package:ja_rating/Components/Login/texto_titulo.dart'; // <-- NUEVO
+import 'package:ja_rating/Components/Login/texto_titulo.dart';
 
 class PaginaProducto extends StatelessWidget {
   final Map<String, dynamic> producto;
@@ -35,7 +36,7 @@ class PaginaProducto extends StatelessWidget {
       backgroundColor: Coloresapp.colorFondo,
       body: CustomScrollView(
         slivers: [
-          // ── CABECERA CON IMAGEN ──
+          // Cabecera con imagen
           SliverAppBar(
             expandedHeight: 320,
             pinned: true,
@@ -48,10 +49,11 @@ class PaginaProducto extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    producto['img'] ?? '',
+                  CachedNetworkImage(
+                    imageUrl: producto['img'] ?? '',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(color: colorTipo),
+                    errorWidget: (_, __, ___) => Container(color: colorTipo),
+                    placeholder: (_, __) => Container(color: colorTipo),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -117,7 +119,7 @@ class PaginaProducto extends StatelessWidget {
             ),
           ),
 
-          // ── CONTENIDO ──
+          // Contenido
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.all(padding),

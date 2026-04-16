@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
+import 'package:ja_rating/Paginas/pagina_login/pagina_login.dart';
+import 'package:ja_rating/Paginas/pagina_login/pagina_registro.dart';
 import 'package:ja_rating/Paginas/pagina_principal.dart';
-import 'Paginas/Pagina_Login.dart';
 import 'package:ja_rating/coloresapp.dart';
-=======
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
->>>>>>> Pagina_Registro
-
-import 'package:ja_rating/Paginas/pagina_principal/pagina_principal.dart';
-import 'package:ja_rating/Paginas/pagina_login/pagina_login.dart';
-import 'package:ja_rating/coloresapp.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -43,9 +37,6 @@ class MainApp extends StatelessWidget {
           ),
         ),
       ),
-<<<<<<< HEAD
-      home: PaginaPrincipal(),
-=======
 
       home: const AuthWrapper(),
     );
@@ -68,11 +59,11 @@ class AuthWrapper extends StatelessWidget {
         }
 
         if (snapshot.hasData) {
-          return PaginaPrincipal();
+          return PaginaLogin();
         }
-        return PaginaPrincipal();
+        return PaginaLogin();
       },
->>>>>>> Pagina_Registro
+
     );
   }
 }
