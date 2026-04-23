@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ja_rating/coloresapp.dart';
-import 'package:ja_rating/Components/Login/boton_auth.dart';
 import 'package:ja_rating/Components/Login/text_field_autentificacion.dart';
 import 'package:ja_rating/Components/Login/texto_idiomas.dart';
 import 'package:ja_rating/Paginas/pagina_login/pagina_login.dart';
+import 'package:ja_rating/Paginas/pagina_principal.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PaginaRegistro extends StatefulWidget {
   const PaginaRegistro({super.key});
@@ -14,12 +15,14 @@ class PaginaRegistro extends StatefulWidget {
 }
 
 class _PaginaRegistroState extends State<PaginaRegistro> {
-  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _nombreUsuarioController = TextEditingController();
+  final TextEditingController _nombreCompletoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   
-  final FocusNode _nombreFocus = FocusNode();
+  final FocusNode _nombreUsuarioFocus = FocusNode();
+  final FocusNode _nombreCompletoFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final FocusNode _confirmPasswordFocus = FocusNode();
@@ -31,20 +34,38 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
 
   @override
   void dispose() {
-    _nombreController.dispose();
+    _nombreUsuarioController.dispose();
+    _nombreCompletoController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _nombreFocus.dispose();
+    _nombreUsuarioFocus.dispose();
+    _nombreCompletoFocus.dispose();
     _emailFocus.dispose();
     _passwordFocus.dispose();
     _confirmPasswordFocus.dispose();
     super.dispose();
   }
 
-  String? _validateNombre(String? value) {
+  String? _validateNombreUsuario(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Por favor ingresa tu nombre';
+      return 'Por favor ingresa un nombre de usuario';
+    }
+    if (value.length < 3) {
+      return 'El nombre de usuario debe tener al menos 3 caracteres';
+    }
+    if (value.length > 20) {
+      return 'El nombre de usuario no puede tener más de 20 caracteres';
+    }
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
+      return 'Solo letras, números y guión bajo';
+    }
+    return null;
+  }
+
+  String? _validateNombreCompleto(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor ingresa tu nombre completo';
     }
     if (value.length < 3) {
       return 'El nombre debe tener al menos 3 caracteres';
@@ -88,99 +109,200 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
     return null;
   }
 
+  Future<bool> _nombreUsuarioExiste(String nombreUsuario) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('usuarios')
+          .where('Usuario', isEqualTo: nombreUsuario.toLowerCase())
+          .limit(1)
+          .get();
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      print('Error verificando nombre de usuario: $e');
+      return false;
+    }
+  }
+
   Future<void> _handleRegister() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() {
-        _isLoading = true;
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Verificar si el nombre de usuario ya existe
+      final nombreUsuario = _nombreUsuarioController.text.trim().toLowerCase();
+      final existeUsuario = await _nombreUsuarioExiste(nombreUsuario);
+      
+      if (existeUsuario) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'El nombre de usuario ya está en uso',
+                style: TextStyle(color: Coloresapp.colorBlanco),
+              ),
+              backgroundColor: Coloresapp.colorRojoOscuro,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // 1. CREAR USUARIO EN AUTH PRIMERO
+      print("🔄 Iniciando registro de usuario...");
+      
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      final user = userCredential.user;
+
+      if (user == null) {
+        throw Exception("No se pudo crear el usuario");
+      }
+
+      print("✅ Usuario creado en Auth: ${user.uid}");
+
+      // Actualizar el display name en Firebase Auth
+      await user.updateDisplayName(_nombreCompletoController.text.trim());
+      await user.reload();
+      
+      // Esperar un momento para asegurar que la autenticación esté completa
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Verificar que el usuario esté autenticado
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        throw Exception("Usuario no autenticado después del registro");
+      }
+
+      print("✅ Usuario autenticado: ${currentUser.uid}");
+
+      // 2. GUARDAR EN FIRESTORE
+      try {
+        final userData = {
+          'uid': currentUser.uid,
+          'Usuario': nombreUsuario,
+          'Nombre Completo': _nombreCompletoController.text.trim(),
+          'Correo electrónico': _emailController.text.trim(),
+          'fechaRegistro': FieldValue.serverTimestamp(),
+          'fotoPerfil': '',
+          'biografia': '',
+        };
+        
+        print("📝 Intentando guardar en Firestore: $userData");
+
+        await FirebaseFirestore.instance
+            .collection('usuarios')
+            .doc(currentUser.uid)
+            .set(userData);
+
+        print("✅ Usuario guardado en Firestore con UID: ${currentUser.uid}");
+        
+      } catch (firestoreError) {
+        print("❌ ERROR FIRESTORE: $firestoreError");
+        print("❌ Detalles del error: ${firestoreError.toString()}");
+        
+        // Si falla Firestore, eliminar el usuario de Auth para mantener consistencia
+        await currentUser.delete();
+        print("🔄 Usuario eliminado de Auth por fallo en Firestore");
+        
+        throw Exception("Error al guardar usuario en Firestore. Verifica las reglas de seguridad en la consola de Firebase.");
+      }
+
+      // 3. UI SUCCESS
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '¡Registro exitoso!',
+            style: TextStyle(color: Coloresapp.colorBlanco),
+          ),
+          backgroundColor: Coloresapp.colorVerde,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+
+      // Pequeña pausa antes de navegar
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const PaginaPrincipal()),
+          );
+        }
       });
 
-      try {
-        // Crear usuario en Firebase Auth
-        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
+    } on FirebaseAuthException catch (e) {
+      print("❌ AUTH ERROR: ${e.code}");
+      
+      String mensajeError;
+      switch (e.code) {
+        case 'email-already-in-use':
+          mensajeError = 'Este correo electrónico ya está registrado';
+          break;
+        case 'invalid-email':
+          mensajeError = 'El correo electrónico no es válido';
+          break;
+        case 'operation-not-allowed':
+          mensajeError = 'El registro con correo/contraseña no está habilitado';
+          break;
+        case 'weak-password':
+          mensajeError = 'La contraseña es muy débil';
+          break;
+        default:
+          mensajeError = e.message ?? 'Error de autenticación';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              mensajeError,
+              style: TextStyle(color: Coloresapp.colorBlanco),
+            ),
+            backgroundColor: Coloresapp.colorRojoOscuro,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         );
+      }
 
-        // Actualizar el perfil del usuario con el nombre
-        await userCredential.user?.updateDisplayName(_nombreController.text.trim());
-        await userCredential.user?.reload();
+    } catch (e) {
+      print("❌ ERROR GENERAL: $e");
 
-        // Mostrar mensaje de éxito
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '¡Registro exitoso! Bienvenido ${_nombreController.text}',
-                style: TextStyle(color: Coloresapp.colorBlanco),
-              ),
-              backgroundColor: Coloresapp.colorVerde,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              duration: const Duration(seconds: 2),
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error: ${e.toString()}',
+              style: TextStyle(color: Coloresapp.colorBlanco),
             ),
-          );
-          
-          // Redirigir a login después de 2 segundos
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const PaginaLogin()),
-              );
-            }
-          });
-        }
-      } on FirebaseAuthException catch (e) {
-        String mensajeError;
-        if (e.code == 'weak-password') {
-          mensajeError = 'La contraseña es demasiado débil';
-        } else if (e.code == 'email-already-in-use') {
-          mensajeError = 'Este email ya está registrado';
-        } else if (e.code == 'invalid-email') {
-          mensajeError = 'El email no es válido';
-        } else {
-          mensajeError = 'Error al registrar: ${e.message}';
-        }
-        
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                mensajeError,
-                style: TextStyle(color: Coloresapp.colorBlanco),
-              ),
-              backgroundColor: Coloresapp.colorRojoOscuro,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+            backgroundColor: Coloresapp.colorRojoOscuro,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Error inesperado: ${e.toString()}',
-                style: TextStyle(color: Coloresapp.colorBlanco),
-              ),
-              backgroundColor: Coloresapp.colorRojoOscuro,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+          ),
+        );
+      }
+
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -205,9 +327,8 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 50),
+                      const SizedBox(height: 30),
                       
-                      // Widget animado de bienvenida
                       TextoIdiomas(
                         duracionAnimacion: const Duration(milliseconds: 800),
                         duracionPausa: const Duration(seconds: 2),
@@ -227,12 +348,11 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                       
                       const SizedBox(height: 30),
                       
-                      // Campo de nombre
                       TextFieldAutentificacion(
-                        controllerText: _nombreController,
-                        hintText: 'Nombre completo',
-                        focusNode: _nombreFocus,
-                        validator: _validateNombre,
+                        controllerText: _nombreUsuarioController,
+                        hintText: 'Nombre de usuario',
+                        focusNode: _nombreUsuarioFocus,
+                        validator: _validateNombreUsuario,
                         esPassword: false,
                         valorInicialOcultarEyeToggle: true,
                         enabled: !_isLoading,
@@ -240,7 +360,18 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                       
                       const SizedBox(height: 20),
                       
-                      // Campo de email
+                      TextFieldAutentificacion(
+                        controllerText: _nombreCompletoController,
+                        hintText: 'Nombre completo',
+                        focusNode: _nombreCompletoFocus,
+                        validator: _validateNombreCompleto,
+                        esPassword: false,
+                        valorInicialOcultarEyeToggle: true,
+                        enabled: !_isLoading,
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      
                       TextFieldAutentificacion(
                         controllerText: _emailController,
                         hintText: 'Correo electrónico',
@@ -253,7 +384,6 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                       
                       const SizedBox(height: 20),
                       
-                      // Campo de contraseña
                       TextFieldAutentificacion(
                         controllerText: _passwordController,
                         hintText: 'Contraseña',
@@ -266,7 +396,6 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                       
                       const SizedBox(height: 20),
                       
-                      // Campo de confirmar contraseña
                       TextFieldAutentificacion(
                         controllerText: _confirmPasswordController,
                         hintText: 'Confirmar contraseña',
@@ -279,7 +408,6 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                       
                       const SizedBox(height: 15),
                       
-                      // Requisitos de contraseña (texto informativo)
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -293,7 +421,7 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Requisitos de contraseña:',
+                              'Requisitos:',
                               style: TextStyle(
                                 color: Coloresapp.colorBlanco,
                                 fontWeight: FontWeight.bold,
@@ -302,7 +430,8 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                             ),
                             const SizedBox(height: 5),
                             Text(
-                              '• Mínimo 6 caracteres\n• Al menos una mayúscula\n• Al menos un número',
+                              '• Nombre de usuario: mínimo 3 caracteres (solo letras, números y _)\n'
+                              '• Contraseña: mínimo 6 caracteres, una mayúscula y un número',
                               style: TextStyle(
                                 color: Coloresapp.colorTextoFlojo,
                                 fontSize: 12,
@@ -314,7 +443,6 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                       
                       const SizedBox(height: 30),
                       
-                      // Botón de registro con efecto hover y loading
                       MouseRegion(
                         onEnter: _isLoading ? null : (_) => setState(() => _isHovering = true),
                         onExit: _isLoading ? null : (_) => setState(() => _isHovering = false),
@@ -373,7 +501,6 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                       
                       const SizedBox(height: 30),
                       
-                      // Enlace para ir a login
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
