@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ja_rating/coloresapp.dart';
-import 'package:ja_rating/Components/Login/boton_auth.dart';
 import 'package:ja_rating/Components/Login/text_field_autentificacion.dart';
 import 'package:ja_rating/Components/Login/texto_idiomas.dart';
 import 'package:ja_rating/Paginas/pagina_login.dart';
-import 'package:ja_rating/Paginas/pagina_registro.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PaginaRegistro extends StatefulWidget {
   const PaginaRegistro({super.key});
@@ -14,12 +14,12 @@ class PaginaRegistro extends StatefulWidget {
 }
 
 class _PaginaRegistroState extends State<PaginaRegistro> {
-  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _nombreUsuarioController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   
-  final FocusNode _nombreFocus = FocusNode();
+  final FocusNode _nombreUsuarioFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final FocusNode _confirmPasswordFocus = FocusNode();
@@ -27,26 +27,34 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
   final _formKey = GlobalKey<FormState>();
   
   bool _isHovering = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    _nombreController.dispose();
+    _nombreUsuarioController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _nombreFocus.dispose();
+    _nombreUsuarioFocus.dispose();
     _emailFocus.dispose();
     _passwordFocus.dispose();
     _confirmPasswordFocus.dispose();
     super.dispose();
   }
 
-  String? _validateNombre(String? value) {
+  // Validar nombre de usuario (solo letras, números y guión bajo)
+  String? _validateNombreUsuario(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Por favor ingresa tu nombre';
+      return 'Por favor ingresa tu nombre de usuario';
     }
     if (value.length < 3) {
       return 'El nombre debe tener al menos 3 caracteres';
+    }
+    if (value.length > 20) {
+      return 'El nombre no puede tener más de 20 caracteres';
+    }
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
+      return 'Solo letras, números y guión bajo';
     }
     return null;
   }
@@ -87,35 +95,140 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
     return null;
   }
 
-  void _handleRegister() {
+  // Verificar si el nombre de usuario ya existe en Firestore
+  Future<bool> _nombreUsuarioExiste(String nombreUsuario) async {
+    final firestore = FirebaseFirestore.instance;
+    final querySnapshot = await firestore
+        .collection('usuarios')
+        .where('nombreUsuario', isEqualTo: nombreUsuario)
+        .limit(1)
+        .get();
+    return querySnapshot.docs.isNotEmpty;
+  }
+
+  Future<void> _handleRegister() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // Mostrar mensaje de éxito
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '¡Registro exitoso! Redirigiendo...',
-            style: TextStyle(color: Coloresapp.colorBlanco),
-          ),
-          backgroundColor: Coloresapp.colorVerde,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      
-      // Simular registro exitoso y redirigir a inicio después de 2 segundos
-      Future.delayed(const Duration(seconds: 2), () {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const PaginaLogin()),
-        );
+      setState(() {
+        _isLoading = true;
       });
-      
-      print('Nombre: ${_nombreController.text}');
-      print('Email: ${_emailController.text}');
-      print('Password: ${_passwordController.text}');
+
+      try {
+        // Verificar si el nombre de usuario ya existe
+        final existe = await _nombreUsuarioExiste(_nombreUsuarioController.text.trim());
+        if (existe) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Este nombre de usuario ya está en uso'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          setState(() {
+            _isLoading = false;
+          });
+          return;
+        }
+
+        // Crear usuario en Firebase Auth
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+
+        // Actualizar el displayName con el nombre de usuario
+        await userCredential.user?.updateDisplayName(_nombreUsuarioController.text.trim());
+        await userCredential.user?.reload();
+
+        // Guardar en Firestore
+        final firestore = FirebaseFirestore.instance;
+        await firestore.collection('usuarios').doc(userCredential.user!.uid).set({
+          'uid': userCredential.user!.uid,
+          'email': userCredential.user!.email,
+          'nombreUsuario': _nombreUsuarioController.text.trim(),
+          'fotoPerfilUrl': '',
+          'fechaRegistro': DateTime.now().toIso8601String(),
+          'animesCalificados': 0,
+          'comentarios': 0,
+          'tierLists': 0,
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '¡Registro exitoso! Bienvenido ${_nombreUsuarioController.text}',
+                style: TextStyle(color: Coloresapp.colorBlanco),
+              ),
+              backgroundColor: Coloresapp.colorVerde,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          
+          // Redirigir a login después de 2 segundos
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const PaginaLogin()),
+              );
+            }
+          });
+        }
+      } on FirebaseAuthException catch (e) {
+        String mensajeError;
+        if (e.code == 'weak-password') {
+          mensajeError = 'La contraseña es demasiado débil';
+        } else if (e.code == 'email-already-in-use') {
+          mensajeError = 'Este email ya está registrado';
+        } else if (e.code == 'invalid-email') {
+          mensajeError = 'El email no es válido';
+        } else {
+          mensajeError = 'Error al registrar: ${e.message}';
+        }
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                mensajeError,
+                style: TextStyle(color: Coloresapp.colorBlanco),
+              ),
+              backgroundColor: Coloresapp.colorRojoOscuro,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Error inesperado: ${e.toString()}',
+                style: TextStyle(color: Coloresapp.colorBlanco),
+              ),
+              backgroundColor: Coloresapp.colorRojoOscuro,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -161,14 +274,15 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                       
                       const SizedBox(height: 30),
                       
-                      // Campo de nombre
+                      // Campo de nombre de usuario (cambiado)
                       TextFieldAutentificacion(
-                        controllerText: _nombreController,
-                        hintText: 'Nombre completo',
-                        focusNode: _nombreFocus,
-                        validator: _validateNombre,
+                        controllerText: _nombreUsuarioController,
+                        hintText: 'Nombre de usuario',
+                        focusNode: _nombreUsuarioFocus,
+                        validator: _validateNombreUsuario,
                         esPassword: false,
                         valorInicialOcultarEyeToggle: true,
+                        enabled: !_isLoading,
                       ),
                       
                       const SizedBox(height: 20),
@@ -181,6 +295,7 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                         validator: _validateEmail,
                         esPassword: false,
                         valorInicialOcultarEyeToggle: true,
+                        enabled: !_isLoading,
                       ),
                       
                       const SizedBox(height: 20),
@@ -193,6 +308,7 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                         validator: _validatePassword,
                         esPassword: true,
                         valorInicialOcultarEyeToggle: true,
+                        enabled: !_isLoading,
                       ),
                       
                       const SizedBox(height: 20),
@@ -205,11 +321,12 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                         validator: _validateConfirmPassword,
                         esPassword: true,
                         valorInicialOcultarEyeToggle: true,
+                        enabled: !_isLoading,
                       ),
                       
                       const SizedBox(height: 15),
                       
-                      // Requisitos de contraseña (texto informativo)
+                      // Requisitos de contraseña
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -223,7 +340,7 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Requisitos de contraseña:',
+                              'Requisitos:',
                               style: TextStyle(
                                 color: Coloresapp.colorBlanco,
                                 fontWeight: FontWeight.bold,
@@ -232,7 +349,7 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                             ),
                             const SizedBox(height: 5),
                             Text(
-                              '• Mínimo 6 caracteres\n• Al menos una mayúscula\n• Al menos un número',
+                              '• Nombre: 3-20 caracteres, solo letras, números y _\n• Contraseña: mínimo 6 caracteres, 1 mayúscula y 1 número',
                               style: TextStyle(
                                 color: Coloresapp.colorTextoFlojo,
                                 fontSize: 12,
@@ -244,22 +361,24 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                       
                       const SizedBox(height: 30),
                       
-                      // Botón de registro con efecto hover
+                      // Botón de registro
                       MouseRegion(
-                        onEnter: (_) => setState(() => _isHovering = true),
-                        onExit: (_) => setState(() => _isHovering = false),
+                        onEnter: _isLoading ? null : (_) => setState(() => _isHovering = true),
+                        onExit: _isLoading ? null : (_) => setState(() => _isHovering = false),
                         child: GestureDetector(
-                          onTap: _handleRegister,
+                          onTap: _isLoading ? null : _handleRegister,
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             width: double.infinity,
                             height: 55,
                             decoration: BoxDecoration(
-                              color: _isHovering 
-                                  ? Coloresapp.colorNaranja.withOpacity(0.9)
-                                  : Coloresapp.colorNaranja,
+                              color: _isLoading 
+                                  ? Coloresapp.colorNaranja.withOpacity(0.5)
+                                  : (_isHovering 
+                                      ? Coloresapp.colorNaranja.withOpacity(0.9)
+                                      : Coloresapp.colorNaranja),
                               borderRadius: BorderRadius.circular(30),
-                              boxShadow: _isHovering
+                              boxShadow: _isHovering && !_isLoading
                                   ? [
                                       BoxShadow(
                                         color: Coloresapp.colorNaranja.withOpacity(0.5),
@@ -276,15 +395,24 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                                     ],
                             ),
                             child: Center(
-                              child: Text(
-                                'REGISTRARSE',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
+                              child: _isLoading
+                                  ? SizedBox(
+                                      height: 30,
+                                      width: 30,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 3,
+                                      ),
+                                    )
+                                  : Text(
+                                      'REGISTRARSE',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
                             ),
                           ),
                         ),
@@ -304,7 +432,7 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {
+                            onTap: _isLoading ? null : () {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(builder: (context) => const PaginaLogin()),
@@ -313,11 +441,15 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                             child: Text(
                               'Inicia sesión',
                               style: TextStyle(
-                                color: Coloresapp.colorPrimario,
+                                color: _isLoading 
+                                    ? Coloresapp.colorTextoFlojo 
+                                    : Coloresapp.colorPrimario,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
                                 decoration: TextDecoration.underline,
-                                decorationColor: Coloresapp.colorPrimarioAccentuado,
+                                decorationColor: _isLoading 
+                                    ? Coloresapp.colorTextoFlojo
+                                    : Coloresapp.colorPrimarioAccentuado,
                                 decorationThickness: 2,
                               ),
                             ),

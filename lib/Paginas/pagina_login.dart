@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ja_rating/coloresapp.dart';
-import 'package:ja_rating/Components/Login/boton_auth.dart';
 import 'package:ja_rating/Components/Login/text_field_autentificacion.dart';
 import 'package:ja_rating/Components/Login/texto_idiomas.dart';
 import 'package:ja_rating/Paginas/pagina_registro.dart';
-import 'package:ja_rating/Paginas/pagina_principal.dart'; // AÑADE ESTE IMPORT
+import 'package:ja_rating/Paginas/pagina_principal.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PaginaLogin extends StatefulWidget {
   const PaginaLogin({super.key});
@@ -15,9 +15,9 @@ class PaginaLogin extends StatefulWidget {
 }
 
 class _PaginaLoginState extends State<PaginaLogin> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usuarioOEmailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final FocusNode _emailFocus = FocusNode();
+  final FocusNode _usuarioOEmailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final _formKey = GlobalKey<FormState>();
   
@@ -26,19 +26,16 @@ class _PaginaLoginState extends State<PaginaLogin> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usuarioOEmailController.dispose();
     _passwordController.dispose();
-    _emailFocus.dispose();
+    _usuarioOEmailFocus.dispose();
     _passwordFocus.dispose();
     super.dispose();
   }
 
-  String? _validateEmail(String? value) {
+  String? _validateUsuarioOEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Por favor ingresa tu email';
-    }
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-      return 'Ingresa un email válido';
+      return 'Por favor ingresa tu usuario o email';
     }
     return null;
   }
@@ -53,6 +50,26 @@ class _PaginaLoginState extends State<PaginaLogin> {
     return null;
   }
 
+  // Obtener email a partir del nombre de usuario
+  Future<String?> _getEmailFromUsername(String username) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('usuarios')
+          .where('nombreUsuario', isEqualTo: username)
+          .limit(1)
+          .get();
+      
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first.data()['email'];
+      }
+      return null;
+    } catch (e) {
+      print('Error al buscar usuario: $e');
+      return null;
+    }
+  }
+
   Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() {
@@ -60,9 +77,24 @@ class _PaginaLoginState extends State<PaginaLogin> {
       });
 
       try {
+        String input = _usuarioOEmailController.text.trim();
+        String email = input;
+        
+        // Si el input NO es un email (no contiene @), buscar el email por nombre de usuario
+        if (!input.contains('@')) {
+          final emailEncontrado = await _getEmailFromUsername(input);
+          if (emailEncontrado == null) {
+            throw FirebaseAuthException(
+              code: 'user-not-found',
+              message: 'No se encontró un usuario con ese nombre',
+            );
+          }
+          email = emailEncontrado;
+        }
+        
         // Iniciar sesión con Firebase Auth
         UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
+          email: email,
           password: _passwordController.text.trim(),
         );
 
@@ -82,7 +114,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
             ),
           );
           
-          // REDIRIGIR A PAGINA_PRINCIPAL DESPUÉS DEL LOGIN
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {
               Navigator.pushReplacement(
@@ -95,7 +126,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
       } on FirebaseAuthException catch (e) {
         String mensajeError;
         if (e.code == 'user-not-found') {
-          mensajeError = 'No existe usuario con este email';
+          mensajeError = 'No existe usuario con este email o nombre de usuario';
         } else if (e.code == 'wrong-password') {
           mensajeError = 'Contraseña incorrecta';
         } else if (e.code == 'invalid-email') {
@@ -153,12 +184,10 @@ class _PaginaLoginState extends State<PaginaLogin> {
       backgroundColor: Coloresapp.colorFonsInici,
       body: Stack(
         children: [
-          // Fondo negro sólido
           Container(
             color: Coloresapp.colorFonsInici,
           ),
           
-          // Contenido principal
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -169,12 +198,11 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Espacio donde estaba el logo
                       const SizedBox(height: 120),
                       
                       const SizedBox(height: 30),
                       
-                      // Widget animado de bienvenida en múltiples idiomas - ROJO
+                      // Widget animado de bienvenida
                       TextoIdiomas(
                         duracionAnimacion: const Duration(milliseconds: 800),
                         duracionPausa: const Duration(seconds: 2),
@@ -194,12 +222,12 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 40),
                       
-                      // Campo de email
+                      // Campo de usuario o email (cambiado)
                       TextFieldAutentificacion(
-                        controllerText: _emailController,
-                        hintText: 'Correo electrónico',
-                        focusNode: _emailFocus,
-                        validator: _validateEmail,
+                        controllerText: _usuarioOEmailController,
+                        hintText: 'Nombre de usuario o correo electrónico',
+                        focusNode: _usuarioOEmailFocus,
+                        validator: _validateUsuarioOEmail,
                         esPassword: false, 
                         valorInicialOcultarEyeToggle: true,
                       ),
@@ -245,7 +273,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 30),
                       
-                      // Botón de login con efecto hover y loading
+                      // Botón de login
                       MouseRegion(
                         onEnter: _isLoading ? null : (_) => setState(() => _isHovering = true),
                         onExit: _isLoading ? null : (_) => setState(() => _isHovering = false),
@@ -359,7 +387,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       
                       const SizedBox(height: 30),
                       
-                      // Enlace de registro - REDIRIGE A PAGINA_REGISTRO
+                      // Enlace de registro
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
