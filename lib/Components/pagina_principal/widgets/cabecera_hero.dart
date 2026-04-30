@@ -54,6 +54,15 @@ class CabeceraHero extends StatelessWidget {
                           color: Coloresapp.colorTexto,
                           fontSize: esWeb ? 34 : 26,
                           fontWeight: FontWeight.w900,
+                          shadows: [Shadow(
+                            color: const Color.fromARGB(144, 255, 255, 255),
+                            blurRadius: 20,
+                            offset: const Offset(1, 2),
+                          ),Shadow(
+                            color: const Color.fromARGB(255, 255, 255, 255),
+                            blurRadius: 4,
+                            offset: const Offset(1, 2),
+                          )],
                         ),
                       ),
                     ],

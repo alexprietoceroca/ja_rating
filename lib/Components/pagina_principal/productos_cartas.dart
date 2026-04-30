@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 import 'package:ja_rating/coloresApp.dart';
+import 'package:ja_rating/Components/Services/image_service.dart';
 
 // ------------------------------------------------------------
 // Controlador global para la animación de cambio de idioma
@@ -84,7 +85,7 @@ class ProductosCarta extends StatefulWidget {
   static double calcularAltura(double ancho, {bool mostrarExtra = false}) {
     final double altoImagen = ancho * 1.25;
     if (mostrarExtra) {
-      return altoImagen + 50;
+      return altoImagen + 80;
     } else {
       return altoImagen + 80;
     }
@@ -98,7 +99,7 @@ class _ProductosCartaState extends State<ProductosCarta>
     with SingleTickerProviderStateMixin {
   late AnimationController _controladorGiro;
   late Animation<double> _animacionGiro;
-  bool _girada = false; // Control interno para saber si estamos mostrando trasera
+  bool _girada = false;
 
   @override
   void initState() {
@@ -182,24 +183,39 @@ class _ProductosCartaState extends State<ProductosCarta>
       case 'Manga':
         return [
           MensajeIdioma(texto: widget.titulo, estilo: GoogleFonts.oswald()),
-          MensajeIdioma(texto: widget.tituloIngles, estilo: GoogleFonts.oswald()),
           MensajeIdioma(
-              texto: widget.tituloOriginal, estilo: GoogleFonts.notoSansJp()),
+            texto: widget.tituloIngles,
+            estilo: GoogleFonts.oswald(),
+          ),
+          MensajeIdioma(
+            texto: widget.tituloOriginal,
+            estilo: GoogleFonts.notoSansJp(),
+          ),
         ];
       case 'Manhwa':
         return [
           MensajeIdioma(texto: widget.titulo, estilo: GoogleFonts.oswald()),
-          MensajeIdioma(texto: widget.tituloIngles, estilo: GoogleFonts.oswald()),
           MensajeIdioma(
-              texto: widget.tituloOriginal, estilo: GoogleFonts.notoSansKr()),
+            texto: widget.tituloIngles,
+            estilo: GoogleFonts.oswald(),
+          ),
+          MensajeIdioma(
+            texto: widget.tituloOriginal,
+            estilo: GoogleFonts.notoSansKr(),
+          ),
         ];
       case 'Manhua':
       case 'Donghua':
         return [
           MensajeIdioma(texto: widget.titulo, estilo: GoogleFonts.oswald()),
-          MensajeIdioma(texto: widget.tituloIngles, estilo: GoogleFonts.oswald()),
           MensajeIdioma(
-              texto: widget.tituloOriginal, estilo: GoogleFonts.notoSansSc()),
+            texto: widget.tituloIngles,
+            estilo: GoogleFonts.oswald(),
+          ),
+          MensajeIdioma(
+            texto: widget.tituloOriginal,
+            estilo: GoogleFonts.notoSansSc(),
+          ),
         ];
       default:
         return [
@@ -232,7 +248,7 @@ class _ProductosCartaState extends State<ProductosCarta>
       onTap: widget.onTap,
       onLongPressStart: (_) => _mostrarTrasera(),
       onLongPressUp: _ocultarTrasera,
-      onLongPressCancel: _ocultarTrasera, // Si se cancela (por scroll, etc.)
+      onLongPressCancel: _ocultarTrasera,
       child: AnimatedBuilder(
         animation: _animacionGiro,
         builder: (context, child) {
@@ -304,6 +320,9 @@ class _CaraDelantera extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Usar la URL de imagen directamente (ya viene de ImageService)
+    final String imagenUrl = urlImagen;
+
     return Container(
       width: anchoCarta,
       margin: const EdgeInsets.only(right: 14),
@@ -312,9 +331,9 @@ class _CaraDelantera extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Coloresapp.colorSombraCard,
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: const Color.fromARGB(235, 248, 219, 219),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -329,17 +348,20 @@ class _CaraDelantera extends StatelessWidget {
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(16)),
                 child: Image.network(
-                  urlImagen,
+                  imagenUrl,
                   height: anchoCarta * 1.25,
                   width: anchoCarta,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: anchoCarta * 1.25,
-                    width: anchoCarta,
-                    color: Coloresapp.colorPrimario,
-                    child: const Icon(Icons.image_not_supported_rounded,
-                        color: Colors.white, size: 40),
-                  ),
+                  errorBuilder: (_, __, ___) {
+                    print('Error cargando imagen: $imagenUrl');
+                    return Container(
+                      height: anchoCarta * 1.25,
+                      width: anchoCarta,
+                      color: Coloresapp.colorPrimario,
+                      child: const Icon(Icons.image_not_supported_rounded,
+                          color: Colors.white, size: 40),
+                    );
+                  },
                 ),
               ),
               Positioned(
@@ -424,9 +446,9 @@ class _CaraDetras extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: colorTipo.withOpacity(0.4),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: const Color.fromARGB(235, 248, 219, 219),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -442,8 +464,10 @@ class _CaraDetras extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.25),
                         borderRadius: BorderRadius.circular(20),
@@ -490,8 +514,11 @@ class _CaraDetras extends StatelessWidget {
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          Icon(Icons.person_outline_rounded,
-                              size: 12, color: Colors.white.withOpacity(0.8)),
+                          Icon(
+                            Icons.person_outline_rounded,
+                            size: 12,
+                            color: Colors.white.withOpacity(0.8),
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -510,8 +537,11 @@ class _CaraDetras extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.calendar_today_rounded,
-                              size: 11, color: Colors.white.withOpacity(0.8)),
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 11,
+                            color: Colors.white.withOpacity(0.8),
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             anio.toString(),
@@ -526,8 +556,11 @@ class _CaraDetras extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.business_center_rounded,
-                              size: 11, color: Colors.white.withOpacity(0.8)),
+                          Icon(
+                            Icons.business_center_rounded,
+                            size: 11,
+                            color: Colors.white.withOpacity(0.8),
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -555,8 +588,11 @@ class _CaraDetras extends StatelessWidget {
             right: 14,
             child: Row(
               children: [
-                Icon(Icons.touch_app_rounded,
-                    color: Colors.white.withOpacity(0.6), size: 12),
+                Icon(
+                  Icons.touch_app_rounded,
+                  color: Colors.white.withOpacity(0.6),
+                  size: 12,
+                ),
                 const SizedBox(width: 4),
                 Flexible(
                   child: Text(
@@ -585,8 +621,10 @@ class _EtiquetaTipoAnimada extends StatefulWidget {
   final List<MensajeIdioma> mensajes;
   final Color colorFondo;
 
-  const _EtiquetaTipoAnimada(
-      {required this.mensajes, required this.colorFondo});
+  const _EtiquetaTipoAnimada({
+    required this.mensajes,
+    required this.colorFondo,
+  });
 
   @override
   State<_EtiquetaTipoAnimada> createState() => _EtiquetaTipoAnimadaState();
@@ -605,9 +643,10 @@ class _EtiquetaTipoAnimadaState extends State<_EtiquetaTipoAnimada>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _indiceActual = _ControladorIdioma().indiceActual;
     _controller.forward();
     _ControladorIdioma().agregarOyente(_alCambiarIdioma);
@@ -643,7 +682,8 @@ class _EtiquetaTipoAnimadaState extends State<_EtiquetaTipoAnimada>
         ),
         child: Text(
           mensaje.texto,
-          style: mensaje.estilo?.copyWith(
+          style:
+              mensaje.estilo?.copyWith(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
@@ -688,9 +728,10 @@ class _TituloAnimadoState extends State<_TituloAnimado>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _indiceActual = _ControladorIdioma().indiceActual;
     _controller.forward();
     _ControladorIdioma().agregarOyente(_alCambiarIdioma);
@@ -726,7 +767,8 @@ class _TituloAnimadoState extends State<_TituloAnimado>
           opacity: _fadeAnimation,
           child: Text(
             mensaje.texto,
-            style: mensaje.estilo?.copyWith(
+            style:
+                mensaje.estilo?.copyWith(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: const Color(0xFF111111),
@@ -763,11 +805,17 @@ class _EstrellasPuntuacion extends StatelessWidget {
         ...List.generate(5, (i) {
           final double valorEstrella = puntuacion - i;
           if (valorEstrella >= 1) {
-            return Icon(Icons.star_rounded,
-                size: 14, color: Coloresapp.colorPrimario);
+            return Icon(
+              Icons.star_rounded,
+              size: 14,
+              color: Coloresapp.colorPrimario,
+            );
           } else if (valorEstrella <= 0) {
-            return Icon(Icons.star_outline_rounded,
-                size: 14, color: Colors.grey.shade300);
+            return Icon(
+              Icons.star_outline_rounded,
+              size: 14,
+              color: Colors.grey.shade300,
+            );
           } else {
             return _EstrellaFraccion(fraccion: valorEstrella);
           }
@@ -802,14 +850,20 @@ class _EstrellaFraccion extends StatelessWidget {
       height: 14,
       child: Stack(
         children: [
-          Icon(Icons.star_outline_rounded,
-              size: 14, color: Colors.grey.shade300),
+          Icon(
+            Icons.star_outline_rounded,
+            size: 14,
+            color: Colors.grey.shade300,
+          ),
           ClipRect(
             child: Align(
               alignment: Alignment.centerLeft,
               widthFactor: fraccion,
-              child: Icon(Icons.star_rounded,
-                  size: 14, color: Coloresapp.colorPrimario),
+              child: Icon(
+                Icons.star_rounded,
+                size: 14,
+                color: Coloresapp.colorPrimario,
+              ),
             ),
           ),
         ],
