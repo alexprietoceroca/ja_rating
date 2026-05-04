@@ -1,5 +1,5 @@
-import 'dart:io';
 // tab_perfil.dart
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,9 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../../../coloresapp.dart';
-import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ja_rating/Paginas/pagina_login.dart';
 
 class TabPerfil extends StatefulWidget {
@@ -19,49 +17,75 @@ class TabPerfil extends StatefulWidget {
   State<TabPerfil> createState() => _TabPerfilState();
 }
 
-class _TabPerfilState extends State<TabPerfil> {
+class _TabPerfilState extends State<TabPerfil>
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  final List<_Petala> _petalas = List.generate(
+    30,
+    (_) => _Petala(),
+  ); // 30 pétalos
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
-  
+
   User? _usuarioActual;
   String? _fotoPerfilUrl;
   String _nombreUsuario = '';
   bool _cargandoDatos = true;
 
+  String _animesCalificados = '0';
+  String _comentarios = '0';
+  String _tierLists = '0';
+  String _miembroDesde = '';
+
   @override
   void initState() {
     super.initState();
     _cargarDatosUsuario();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat(); // Animación continua para todos los pétalos
   }
 
-  Future<void> _cargarDatosUsuario() async {
-    setState(() {
-      _cargandoDatos = true;
-    });
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
+  @override
+  bool get wantKeepAlive => true;
+
+  Future<void> _cargarDatosUsuario() async {
+    setState(() => _cargandoDatos = true);
     try {
       _usuarioActual = _auth.currentUser;
-      
       if (_usuarioActual != null) {
-        final docRef = _firestore.collection('usuarios').doc(_usuarioActual!.uid);
+        final docRef = _firestore
+            .collection('usuarios')
+            .doc(_usuarioActual!.uid);
         final doc = await docRef.get();
-        
         if (doc.exists) {
           final data = doc.data();
-          _nombreUsuario = data?['nombreUsuario'] ?? 
-                          _usuarioActual?.displayName ?? 
-                          _usuarioActual?.email?.split('@')[0] ?? 
-                          'Usuario';
+          _nombreUsuario =
+              data?['nombreUsuario'] ??
+              _usuarioActual?.displayName ??
+              _usuarioActual?.email?.split('@')[0] ??
+              'Usuario';
           _fotoPerfilUrl = data?['fotoPerfilUrl'];
-          if (_fotoPerfilUrl == '') {
-            _fotoPerfilUrl = null;
-          }
+          if (_fotoPerfilUrl == '') _fotoPerfilUrl = null;
+          _animesCalificados = (data?['animesCalificados'] ?? 0).toString();
+          _comentarios = (data?['comentarios'] ?? 0).toString();
+          _tierLists = (data?['tierLists'] ?? 0).toString();
+          _miembroDesde = _formatearFecha(data?['fechaRegistro']);
         } else {
-          _nombreUsuario = _usuarioActual?.displayName ?? 
-                          _usuarioActual?.email?.split('@')[0] ?? 
-                          'Usuario';
-          
+          _nombreUsuario =
+              _usuarioActual?.displayName ??
+              _usuarioActual?.email?.split('@')[0] ??
+              'Usuario';
+          _miembroDesde = _formatearFecha(DateTime.now().toIso8601String());
           await docRef.set({
             'uid': _usuarioActual!.uid,
             'email': _usuarioActual!.email,
@@ -78,15 +102,20 @@ class _TabPerfilState extends State<TabPerfil> {
       print('Error al cargar datos: $e');
       _nombreUsuario = 'Usuario';
     } finally {
-      if (mounted) {
-        setState(() {
-          _cargandoDatos = false;
-        });
-      }
+      if (mounted) setState(() => _cargandoDatos = false);
     }
   }
 
-  // Mostrar opciones para cambiar foto
+  String _formatearFecha(String? fechaIso) {
+    if (fechaIso == null) return 'Miembro reciente';
+    try {
+      final fecha = DateTime.parse(fechaIso);
+      return 'Miembro desde ${fecha.year}';
+    } catch (e) {
+      return 'Miembro reciente';
+    }
+  }
+
   void _mostrarOpcionesFoto() {
     showModalBottomSheet(
       context: context,
@@ -128,7 +157,6 @@ class _TabPerfilState extends State<TabPerfil> {
     );
   }
 
-  // Seleccionar imagen
   Future<void> _seleccionarImagen(ImageSource source) async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(
@@ -136,52 +164,32 @@ class _TabPerfilState extends State<TabPerfil> {
       imageQuality: 85,
       maxWidth: 1024,
     );
-    
-    if (pickedFile != null) {
-      await _subirImagen(File(pickedFile.path));
-    }
+    if (pickedFile != null) await _subirImagen(File(pickedFile.path));
   }
 
-  // Subir imagen a Firebase
   Future<void> _subirImagen(File imagen) async {
-    // Mostrar loading
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-
     try {
       final user = _auth.currentUser;
-      
-      if (user == null) {
-        throw Exception('No hay usuario autenticado');
-      }
-
-      // Subir a Storage
+      if (user == null) throw Exception('No hay usuario autenticado');
       final ref = _storage.ref().child('perfiles/${user.uid}/foto_perfil.jpg');
       await ref.putFile(imagen);
       final url = await ref.getDownloadURL();
-      
-      // Guardar URL en Firestore
       await _firestore.collection('usuarios').doc(user.uid).update({
         'fotoPerfilUrl': url,
       });
-      
-      // Actualizar Auth
       await user.updatePhotoURL(url);
       await user.reload();
-      
       if (mounted) {
         setState(() {
           _fotoPerfilUrl = url;
           _usuarioActual = _auth.currentUser;
         });
-        
         Navigator.pop(context);
-        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Foto de perfil actualizada'),
@@ -194,47 +202,32 @@ class _TabPerfilState extends State<TabPerfil> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
   }
 
-  // Eliminar foto
   Future<void> _eliminarFoto() async {
     try {
       final user = _auth.currentUser;
-      
-      if (user == null) {
-        throw Exception('No hay usuario autenticado');
-      }
-
-      // Eliminar de Storage
+      if (user == null) throw Exception('No hay usuario autenticado');
       try {
-        final ref = _storage.ref().child('perfiles/${user.uid}/foto_perfil.jpg');
-        await ref.delete();
-      } catch (e) {
-        print('No se pudo eliminar de Storage: $e');
-      }
-      
-      // Actualizar Firestore
+        await _storage
+            .ref()
+            .child('perfiles/${user.uid}/foto_perfil.jpg')
+            .delete();
+      } catch (e) {}
       await _firestore.collection('usuarios').doc(user.uid).update({
         'fotoPerfilUrl': '',
       });
-      
-      // Actualizar Auth
       await user.updatePhotoURL(null);
       await user.reload();
-      
       if (mounted) {
         setState(() {
           _fotoPerfilUrl = null;
           _usuarioActual = _auth.currentUser;
         });
-        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Foto de perfil eliminada'),
@@ -246,19 +239,16 @@ class _TabPerfilState extends State<TabPerfil> {
       print('Error al eliminar foto: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
   }
 
-  // Editar nombre de usuario
   void _editarNombre() {
-    final TextEditingController controller = TextEditingController(text: _nombreUsuario);
-    
+    final TextEditingController controller = TextEditingController(
+      text: _nombreUsuario,
+    );
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -284,9 +274,8 @@ class _TabPerfilState extends State<TabPerfil> {
           ElevatedButton(
             onPressed: () async {
               final nuevoNombre = controller.text.trim();
-              if (nuevoNombre.isNotEmpty && nuevoNombre != _nombreUsuario) {
+              if (nuevoNombre.isNotEmpty && nuevoNombre != _nombreUsuario)
                 await _actualizarNombre(nuevoNombre);
-              }
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
@@ -299,31 +288,22 @@ class _TabPerfilState extends State<TabPerfil> {
     );
   }
 
-  // Actualizar nombre
   Future<void> _actualizarNombre(String nuevoNombre) async {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-
     try {
       final user = _auth.currentUser;
-      
-      if (user == null) {
-        throw Exception('No hay usuario autenticado');
-      }
-
-      // Verificar si el nombre ya existe
+      if (user == null) throw Exception('No hay usuario autenticado');
       final querySnapshot = await _firestore
           .collection('usuarios')
           .where('nombreUsuario', isEqualTo: nuevoNombre)
           .limit(1)
           .get();
-      
-      if (querySnapshot.docs.isNotEmpty && querySnapshot.docs.first.id != user.uid) {
+      if (querySnapshot.docs.isNotEmpty &&
+          querySnapshot.docs.first.id != user.uid) {
         if (mounted) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -335,24 +315,17 @@ class _TabPerfilState extends State<TabPerfil> {
         }
         return;
       }
-
-      // Actualizar Firestore
       await _firestore.collection('usuarios').doc(user.uid).update({
         'nombreUsuario': nuevoNombre,
       });
-
-      // Actualizar Auth
       await user.updateDisplayName(nuevoNombre);
       await user.reload();
-
       if (mounted) {
         setState(() {
           _nombreUsuario = nuevoNombre;
           _usuarioActual = _auth.currentUser;
         });
-        
         Navigator.pop(context);
-        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Nombre actualizado correctamente'),
@@ -365,16 +338,12 @@ class _TabPerfilState extends State<TabPerfil> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
   }
 
-  // Cerrar sesión
   Future<void> _cerrarSesion() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -394,63 +363,15 @@ class _TabPerfilState extends State<TabPerfil> {
         ],
       ),
     );
-    
     if (confirm == true) {
       await _auth.signOut();
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
+      if (mounted) Navigator.pushReplacementNamed(context, '/login');
     }
   }
 
   @override
-  State<TabPerfil> createState() => _TabPerfilState();
-}
-
-class _TabPerfilState extends State<TabPerfil>
-    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _posY;
-  late Animation<double> _posX;
-  late Animation<double> _rotacion;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 6),
-    )..repeat(reverse: false);
-
-    // Caída de arriba (0) a abajo (1)
-    _posY = Tween<double>(
-      begin: -0.1,
-      end: 1.1,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
-
-    // Movimiento lateral ondulante
-    _posX = Tween<double>(begin: 0.2, end: 0.8).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
-    );
-
-    // Rotación continua
-    _rotacion = Tween<double>(
-      begin: 0,
-      end: 2 * pi,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (_cargandoDatos) {
       return const Center(
         child: Column(
@@ -463,10 +384,6 @@ class _TabPerfilState extends State<TabPerfil>
         ),
       );
     }
-    super.build(context);
-    final double anchoPantalla = MediaQuery.of(context).size.width;
-    final double padding = anchoPantalla > 800 ? 40 : 20;
-
     if (_usuarioActual == null) {
       return const Center(
         child: Column(
@@ -480,56 +397,32 @@ class _TabPerfilState extends State<TabPerfil>
       );
     }
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            
-            // Avatar con botón de cámara
-            Stack(
+    final double anchoPantalla = MediaQuery.of(context).size.width;
+    final double padding = anchoPantalla > 800 ? 40 : 20;
+
     return Stack(
       children: [
         // Fondo base
         Container(color: Coloresapp.colorFondo),
-        // Pétalo animado
+        // Pétalos animados (múltiples)
         AnimatedBuilder(
           animation: _controller,
-          builder: (context, child) {
-            return Positioned(
-              left: (_posX.value * MediaQuery.of(context).size.width) - 20,
-              top: (_posY.value * MediaQuery.of(context).size.height) - 20,
-              child: Transform.rotate(
-                angle: _rotacion.value,
-                child: CustomPaint(
-                  painter: _PetalaPainter(),
-                  size: const Size(40, 40),
-                ),
-              ),
-            );
-          },
+          builder: (context, child) => CustomPaint(
+            painter: _PetalaPainterMultiple(_petalas, _controller.value),
+            size: Size.infinite,
+          ),
         ),
-        // Contenido original
+        // Contenido principal
         SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.all(padding),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Coloresapp.colorPrimario,
-                  backgroundImage: _fotoPerfilUrl != null && _fotoPerfilUrl!.isNotEmpty
-                      ? NetworkImage(_fotoPerfilUrl!)
-                      : null,
-                  child: (_fotoPerfilUrl == null || _fotoPerfilUrl!.isEmpty)
-                      ? const Icon(Icons.person_rounded, color: Colors.white, size: 60)
-                      : null,
-                // Cabecera (igual que antes)
+                const SizedBox(height: 20),
+                // Cabecera
                 Padding(
-                  padding: EdgeInsets.fromLTRB(0, 10, 0, 20),
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
                   child: Row(
                     children: [
                       Image.asset(
@@ -554,175 +447,137 @@ class _TabPerfilState extends State<TabPerfil>
                           Icons.logout,
                           color: Coloresapp.colorTexto,
                         ),
-                        onPressed: () async {
-                          await FirebaseAuth.instance.signOut();
-                          if (mounted) {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const PaginaLogin(),
-                              ),
-                            );
-                          }
-                        },
+                        onPressed: _cerrarSesion,
                       ),
                     ],
                   ),
                 ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: _mostrarOpcionesFoto,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Coloresapp.colorPrimario,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                const SizedBox(height: 10),
-                Row(
+                // Avatar
+                Stack(
                   children: [
-                    const CircleAvatar(
-                      radius: 35,
+                    CircleAvatar(
+                      radius: 60,
                       backgroundColor: Coloresapp.colorPrimario,
-                      child: Icon(
-                        Icons.person_rounded,
-                        color: Colors.white,
-                        size: 36,
+                      backgroundImage:
+                          (_fotoPerfilUrl != null && _fotoPerfilUrl!.isNotEmpty)
+                          ? NetworkImage(_fotoPerfilUrl!)
+                          : null,
+                      child: (_fotoPerfilUrl == null || _fotoPerfilUrl!.isEmpty)
+                          ? const Icon(
+                              Icons.person_rounded,
+                              color: Colors.white,
+                              size: 60,
+                            )
+                          : null,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: _mostrarOpcionesFoto,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Coloresapp.colorPrimario,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Akira_Fan',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: Coloresapp.colorCasiNegro,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Miembro desde 2023',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Coloresapp.colorTextoFlojo,
-                          ),
-                        ),
-                      ],
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Nombre
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _nombreUsuario,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: _editarNombre,
+                      icon: const Icon(Icons.edit, size: 20),
+                      color: Colors.grey,
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 8),
+                Text(
+                  _usuarioActual?.email ?? 'Sin email',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _miembroDesde,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Coloresapp.colorTextoFlojo,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // Estadísticas
                 Row(
                   children: [
-                    _EstadisticaPerfil(valor: '47', etiqueta: 'Calificados'),
+                    _buildTarjetaEstadistica(_animesCalificados, 'Calificados'),
                     const SizedBox(width: 12),
-                    _EstadisticaPerfil(valor: '23', etiqueta: 'Comentarios'),
+                    _buildTarjetaEstadistica(_comentarios, 'Comentarios'),
                     const SizedBox(width: 12),
-                    _EstadisticaPerfil(valor: '5', etiqueta: 'Tier Lists'),
+                    _buildTarjetaEstadistica(_tierLists, 'Tier Lists'),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 40),
+                // Menú
                 _ItemMenuPerfil(
                   icono: Icons.star_rounded,
                   etiqueta: 'Mis calificaciones',
-                  sub: '47 títulos calificados',
+                  sub: '$_animesCalificados títulos calificados',
                 ),
                 _ItemMenuPerfil(
                   icono: Icons.chat_bubble_outline_rounded,
                   etiqueta: 'Mis comentarios',
-                  sub: '23 comentarios',
+                  sub: '$_comentarios comentarios',
                 ),
                 _ItemMenuPerfil(
                   icono: Icons.emoji_events_rounded,
                   etiqueta: 'Mis Tier Lists',
-                  sub: '5 listas creadas',
+                  sub: '$_tierLists listas creadas',
                 ),
                 _ItemMenuPerfil(
                   icono: Icons.forum_rounded,
                   etiqueta: 'Foros visitados',
-                  sub: '12 hilos activos',
+                  sub: 'Comunidad activa',
                 ),
-              ],
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Nombre de usuario
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _nombreUsuario,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(height: 30),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _cerrarSesion,
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Cerrar sesión'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: _editarNombre,
-                  icon: const Icon(Icons.edit, size: 20),
-                  color: Colors.grey,
-                ),
+                const SizedBox(height: 20),
               ],
             ),
-            
-            const SizedBox(height: 8),
-            
-            // Email
-            Text(
-              _usuarioActual?.email ?? 'Sin email',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
-            ),
-            
-            const SizedBox(height: 40),
-            
-            // Estadísticas
-            Row(
-              children: [
-                _buildTarjetaEstadistica('0', 'Calificados'),
-                const SizedBox(width: 12),
-                _buildTarjetaEstadistica('0', 'Comentarios'),
-                const SizedBox(width: 12),
-                _buildTarjetaEstadistica('0', 'Tier Lists'),
-              ],
-            ),
-            
-            const SizedBox(height: 40),
-            
-            // Botón de cerrar sesión
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _cerrarSesion,
-                icon: const Icon(Icons.logout),
-                label: const Text('Cerrar sesión'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-          ],
           ),
         ),
       ],
@@ -730,69 +585,6 @@ class _TabPerfilState extends State<TabPerfil>
   }
 
   Widget _buildTarjetaEstadistica(String valor, String etiqueta) {
-// Painter que dibuja un pétalo de sakura
-class _PetalaPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Coloresapp.colorRosaClaro.withOpacity(0.8)
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    // Forma de pétalo (lágrima)
-    path.moveTo(size.width / 2, 0);
-    path.cubicTo(
-      size.width * 0.7,
-      size.height * 0.3,
-      size.width,
-      size.height * 0.7,
-      size.width / 2,
-      size.height,
-    );
-    path.cubicTo(
-      0,
-      size.height * 0.7,
-      size.width * 0.3,
-      size.height * 0.3,
-      size.width / 2,
-      0,
-    );
-    path.close();
-
-    canvas.drawPath(path, paint);
-
-    // Detalle central (vena)
-    final paintLine = Paint()
-      ..color = Colors.white.withOpacity(0.5)
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-    final centerPath = Path();
-    centerPath.moveTo(size.width / 2, 0);
-    centerPath.cubicTo(
-      size.width / 2,
-      size.height * 0.4,
-      size.width / 2,
-      size.height * 0.7,
-      size.width / 2,
-      size.height,
-    );
-    canvas.drawPath(centerPath, paintLine);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// ---------------------------------------------------------------------
-// Widgets auxiliares (EstadisticaPerfil, ItemMenuPerfil)
-// ---------------------------------------------------------------------
-class _EstadisticaPerfil extends StatelessWidget {
-  final String valor;
-  final String etiqueta;
-  const _EstadisticaPerfil({required this.valor, required this.etiqueta});
-
-  @override
-  Widget build(BuildContext context) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -812,24 +604,12 @@ class _EstadisticaPerfil extends StatelessWidget {
             Text(
               valor,
               style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.orange,
-              ),
-              style: const TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w900,
                 color: Coloresapp.colorPrimario,
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              etiqueta,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
             Text(
               etiqueta,
               style: const TextStyle(
@@ -844,6 +624,76 @@ class _EstadisticaPerfil extends StatelessWidget {
   }
 }
 
+// Clase que representa un pétalo con sus propiedades
+class _Petala {
+  double x = Random().nextDouble(); // posición horizontal inicial (0-1)
+  double y = Random().nextDouble(); // posición vertical inicial (0-1)
+  double tamano = 0.5 + Random().nextDouble() * 0.8;
+  double velocidadY = 0.2 + Random().nextDouble() * 0.3; // velocidad de caída
+  double velocidadX = 0.03 + Random().nextDouble() * 0.07; // velocidad lateral
+  double rotacion = Random().nextDouble() * 2 * pi;
+  double velocidadRotacion = 0.2 + Random().nextDouble() * 0.5;
+  double offsetOnda = Random().nextDouble() * 2 * pi;
+  double amplitudOnda = 10 + Random().nextDouble() * 20;
+}
+
+// Painter que dibuja múltiples pétalos con forma alargada y puntiaguda
+class _PetalaPainterMultiple extends CustomPainter {
+  final List<_Petala> petalas;
+  final double tiempo;
+  _PetalaPainterMultiple(this.petalas, this.tiempo);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (var p in petalas) {
+      // Posición Y: caída continua (se reinicia al llegar al fondo)
+      double y = (p.y + tiempo * p.velocidadY) % 1.0;
+      // Posición X: movimiento lateral ondulante
+      double x =
+          p.x +
+          sin(tiempo * p.velocidadX * 2 * pi + p.offsetOnda) *
+              p.amplitudOnda /
+              size.width;
+      x = x % 1.0;
+      // Rotación
+      double rot = p.rotacion + tiempo * p.velocidadRotacion * 2 * pi;
+
+      canvas.save();
+      canvas.translate(x * size.width, y * size.height);
+      canvas.rotate(rot);
+      canvas.scale(p.tamano);
+
+      // Forma de pétalo alargado y puntiagudo (más delgado que el anterior)
+      final path = Path();
+      path.moveTo(0, 0); // punta superior
+      path.cubicTo(-6, 8, -10, 18, 0, 32); // lado izquierdo curvado
+      path.cubicTo(10, 18, 6, 8, 0, 0); // lado derecho curvado
+      path.close();
+
+      final paint = Paint()
+        ..color = Coloresapp.colorRosaClaro.withOpacity(0.85)
+        ..style = PaintingStyle.fill;
+      canvas.drawPath(path, paint);
+
+      // Vena central fina
+      final paintLine = Paint()
+        ..color = Colors.white.withOpacity(0.4)
+        ..strokeWidth = 1.2
+        ..style = PaintingStyle.stroke;
+      final pathVena = Path();
+      pathVena.moveTo(0, 2);
+      pathVena.cubicTo(0, 12, 0, 22, 0, 30);
+      canvas.drawPath(pathVena, paintLine);
+
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+// Widget auxiliar para items del menú (sin cambios)
 class _ItemMenuPerfil extends StatelessWidget {
   final IconData icono;
   final String etiqueta;

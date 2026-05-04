@@ -1,7 +1,7 @@
 // tab_descubrir.dart
 import 'package:flutter/material.dart';
 import 'package:ja_rating/Paginas/pagina_producto.dart';
-import 'package:ja_rating/Paginas/pagina_login.dart'; // Añadir import
+import 'package:ja_rating/Paginas/pagina_login.dart';
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
 import 'package:ja_rating/Components/pagina_principal/productos_cartas.dart';
@@ -33,7 +33,6 @@ class _TabDescubrirState extends State<TabDescubrir>
     'Manhua',
     'Donghua',
   ];
-
   late AnimationController _animController;
 
   @override
@@ -84,13 +83,11 @@ class _TabDescubrirState extends State<TabDescubrir>
             (columnas - 1) * 14) /
         columnas;
     final double altoCarta =
-        ProductosCarta.calcularAltura(anchoCarta, mostrarExtra: true) +
-        20; // +20 para evitar overflow
+        ProductosCarta.calcularAltura(anchoCarta, mostrarExtra: true) + 20;
     final double aspectRatio = anchoCarta / altoCarta;
 
     return Stack(
       children: [
-        // Fondo animado con imagen de mapa antiguo
         AnimatedBuilder(
           animation: _animController,
           builder: (context, child) {
@@ -113,18 +110,14 @@ class _TabDescubrirState extends State<TabDescubrir>
             );
           },
         ),
-        // Capa oscura semitransparente
         Container(color: Colors.black.withOpacity(0.35)),
-
         SafeArea(
           child: Column(
             children: [
-              // Cabecera con logo, título y logout
               Padding(
                 padding: EdgeInsets.fromLTRB(padding, 20, padding, 0),
                 child: Row(
                   children: [
-                    // Logo a la izquierda
                     Image.asset(
                       'assets/imagenes/logo.png',
                       width: 40,
@@ -132,34 +125,21 @@ class _TabDescubrirState extends State<TabDescubrir>
                       errorBuilder: (_, __, ___) =>
                           const Icon(Icons.image, color: Colors.white),
                     ),
-                    const Spacer(), // Empuja el siguiente elemento al centro
-                    // Título centrado
+                    const Spacer(),
                     TextoNormal(
                       contingutText: 'Descubrir',
                       colorText: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
-                    const Spacer(), // Empuja el icono a la derecha
-                    // Icono de logout
+                    const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.logout, color: Colors.white),
-                      onPressed: () async {
-                        await FirebaseAuth.instance.signOut();
-                        if (mounted) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PaginaLogin(),
-                            ),
-                          );
-                        }
-                      },
+                      onPressed: _logout,
                     ),
                   ],
                 ),
               ),
-              // Barra de búsqueda
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: padding),
                 child: Container(
@@ -192,7 +172,6 @@ class _TabDescubrirState extends State<TabDescubrir>
                 ),
               ),
               const SizedBox(height: 14),
-              // Filtros horizontales
               SizedBox(
                 height: 38,
                 child: ListView.builder(
@@ -237,7 +216,6 @@ class _TabDescubrirState extends State<TabDescubrir>
                 ),
               ),
               const SizedBox(height: 16),
-              // Grid de productos
               Expanded(
                 child: GridView.builder(
                   padding: EdgeInsets.symmetric(horizontal: padding),
@@ -249,26 +227,27 @@ class _TabDescubrirState extends State<TabDescubrir>
                   ),
                   itemCount: filtrados.length,
                   itemBuilder: (context, i) {
+                    final item = filtrados[i];
                     return ProductosCarta(
-                      titulo: filtrados[i]['titulo'],
-                      tituloIngles: filtrados[i]['tituloIngles'],
-                      tituloOriginal: filtrados[i]['tituloOriginal'],
-                      genero: filtrados[i]['genero'],
-                      tipo: filtrados[i]['tipo'],
-                      puntuacion: filtrados[i]['puntuacion'].toDouble(),
-                      urlImagen: filtrados[i]['img'],
-                      descripcion: filtrados[i]['descripcion'],
+                      malId: item['malId'] ?? 0,
+                      titulo: item['titulo'] ?? '',
+                      tituloIngles: item['tituloIngles'] ?? '',
+                      tituloOriginal: item['tituloOriginal'] ?? '',
+                      genero: item['genero'] ?? '',
+                      tipo: item['tipo'] ?? '',
+                      puntuacion: (item['puntuacion'] ?? 0.0).toDouble(),
+                      urlImagen: item['img'] ?? '',
+                      descripcion: item['descripcion'] ?? '',
                       mostrarExtra: true,
-                      autor: filtrados[i]['autor'] ?? '',
-                      anio: filtrados[i]['anio'] ?? 0,
-                      estudio: filtrados[i]['estudio'] ?? '',
+                      autor: item['autor'] ?? '',
+                      anio: item['anio'] ?? 0,
+                      estudio: item['estudio'] ?? '',
                       anchoCarta: anchoCarta,
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                PaginaProducto(producto: filtrados[i]),
+                            builder: (_) => PaginaProducto(producto: item),
                           ),
                         );
                       },
