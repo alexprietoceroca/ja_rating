@@ -1,12 +1,9 @@
 // productos_cartas.dart
-// Ahora: long press para mostrar trasera, soltar para volver a delantera.
-// Tap simple → navegación a detalle.
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 import 'package:ja_rating/coloresApp.dart';
-import 'package:ja_rating/Components/Services/image_service.dart';
+import 'package:ja_rating/Components/CustomProductImage.dart';
 
 // ------------------------------------------------------------
 // Controlador global para la animación de cambio de idioma
@@ -49,6 +46,7 @@ class _ControladorIdioma {
 // Widget principal de la carta
 // ------------------------------------------------------------
 class ProductosCarta extends StatefulWidget {
+  final int malId;
   final String titulo;
   final String tituloIngles;
   final String tituloOriginal;
@@ -66,6 +64,7 @@ class ProductosCarta extends StatefulWidget {
 
   const ProductosCarta({
     super.key,
+    required this.malId,
     required this.titulo,
     required this.tituloIngles,
     required this.tituloOriginal,
@@ -265,6 +264,7 @@ class _ProductosCartaState extends State<ProductosCarta>
                     alignment: Alignment.center,
                     transform: Matrix4.identity()..rotateY(math.pi),
                     child: _CaraDetras(
+                      malId: widget.malId,
                       titulo: widget.titulo,
                       genero: widget.genero,
                       descripcion: widget.descripcion,
@@ -281,6 +281,7 @@ class _ProductosCartaState extends State<ProductosCarta>
                     ),
                   )
                 : _CaraDelantera(
+                    malId: widget.malId,
                     mensajesTipo: _mensajesTipo,
                     mensajesTitulo: _mensajesTitulo,
                     genero: widget.genero,
@@ -297,9 +298,10 @@ class _ProductosCartaState extends State<ProductosCarta>
 }
 
 // ------------------------------------------------------------
-// Cara delantera (sin información extra)
+// Cara delantera (con malId visible)
 // ------------------------------------------------------------
 class _CaraDelantera extends StatelessWidget {
+  final int malId;
   final List<MensajeIdioma> mensajesTipo;
   final List<MensajeIdioma> mensajesTitulo;
   final String genero;
@@ -309,6 +311,7 @@ class _CaraDelantera extends StatelessWidget {
   final double anchoCarta;
 
   const _CaraDelantera({
+    required this.malId,
     required this.mensajesTipo,
     required this.mensajesTitulo,
     required this.genero,
@@ -320,9 +323,6 @@ class _CaraDelantera extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usar la URL de imagen directamente (ya viene de ImageService)
-    final String imagenUrl = urlImagen;
-
     return Container(
       width: anchoCarta,
       margin: const EdgeInsets.only(right: 14),
@@ -345,23 +345,15 @@ class _CaraDelantera extends StatelessWidget {
           Stack(
             children: [
               ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.network(
-                  imagenUrl,
-                  height: anchoCarta * 1.25,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
+                child: CustomProductImage(
+                  malId: malId,
+                  originalUrl: urlImagen,
                   width: anchoCarta,
+                  height: anchoCarta * 1.25,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) {
-                    print('Error cargando imagen: $imagenUrl');
-                    return Container(
-                      height: anchoCarta * 1.25,
-                      width: anchoCarta,
-                      color: Coloresapp.colorPrimario,
-                      child: const Icon(Icons.image_not_supported_rounded,
-                          color: Colors.white, size: 40),
-                    );
-                  },
                 ),
               ),
               Positioned(
@@ -375,13 +367,16 @@ class _CaraDelantera extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 _TituloAnimado(
-                    mensajes: mensajesTitulo, anchoCarta: anchoCarta),
+                  mensajes: mensajesTitulo,
+                  anchoCarta: anchoCarta,
+                ),
+                const SizedBox(height: 8),
                 Text(
                   genero,
                   style: const TextStyle(
@@ -392,7 +387,19 @@ class _CaraDelantera extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                // 👇 Mostramos el malId temporalmente (puedes eliminar esta línea después)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'ID: $malId',
+                    style: const TextStyle(
+                      fontFamily: 'HoshikoSatsuki',
+                      fontSize: 9,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
                 _EstrellasPuntuacion(puntuacion: puntuacion),
               ],
             ),
@@ -404,9 +411,10 @@ class _CaraDelantera extends StatelessWidget {
 }
 
 // ------------------------------------------------------------
-// Cara trasera (sinopsis + información extra opcional)
+// Cara trasera (sin cambios)
 // ------------------------------------------------------------
 class _CaraDetras extends StatelessWidget {
+  final int malId;
   final String titulo;
   final String genero;
   final String descripcion;
@@ -419,6 +427,7 @@ class _CaraDetras extends StatelessWidget {
   final bool mostrarExtra;
 
   const _CaraDetras({
+    required this.malId,
     required this.titulo,
     required this.genero,
     required this.descripcion,
@@ -620,7 +629,6 @@ class _CaraDetras extends StatelessWidget {
 class _EtiquetaTipoAnimada extends StatefulWidget {
   final List<MensajeIdioma> mensajes;
   final Color colorFondo;
-
   const _EtiquetaTipoAnimada({
     required this.mensajes,
     required this.colorFondo,
@@ -708,7 +716,6 @@ class _EtiquetaTipoAnimadaState extends State<_EtiquetaTipoAnimada>
 class _TituloAnimado extends StatefulWidget {
   final List<MensajeIdioma> mensajes;
   final double anchoCarta;
-
   const _TituloAnimado({required this.mensajes, required this.anchoCarta});
 
   @override
@@ -758,7 +765,7 @@ class _TituloAnimadoState extends State<_TituloAnimado>
   Widget build(BuildContext context) {
     final mensaje = widget.mensajes[_indiceActual];
     return SizedBox(
-      height: 20,
+      height: 18,
       width: widget.anchoCarta - 20,
       child: OverflowBox(
         maxHeight: 30,
@@ -795,7 +802,6 @@ class _TituloAnimadoState extends State<_TituloAnimado>
 // ------------------------------------------------------------
 class _EstrellasPuntuacion extends StatelessWidget {
   final double puntuacion;
-
   const _EstrellasPuntuacion({required this.puntuacion});
 
   @override
@@ -840,7 +846,6 @@ class _EstrellasPuntuacion extends StatelessWidget {
 // ------------------------------------------------------------
 class _EstrellaFraccion extends StatelessWidget {
   final double fraccion;
-
   const _EstrellaFraccion({required this.fraccion});
 
   @override
@@ -878,6 +883,5 @@ class _EstrellaFraccion extends StatelessWidget {
 class MensajeIdioma {
   final String texto;
   final TextStyle? estilo;
-
   MensajeIdioma({required this.texto, this.estilo});
 }

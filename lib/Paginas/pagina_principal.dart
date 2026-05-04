@@ -17,14 +17,14 @@ class PaginaPrincipal extends StatefulWidget {
 
 class _PaginaPrincipalState extends State<PaginaPrincipal> {
   int indiceSeleccionado = 0;
-  
+
   List<ProductoModel> tendencias = [];
   List<ProductoModel> populares = [];
   List<ProductoModel> todosProductos = [];
-  
+
   bool isLoading = true;
   String? errorMessage;
-  
+
   final JikanService _jikanService = JikanService();
 
   @override
@@ -38,24 +38,27 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       isLoading = true;
       errorMessage = null;
     });
-    
+
     try {
       print('Iniciando carga de datos...');
-      
+
       final results = await Future.wait([
         _jikanService.getTopAnime(limit: 10),
         _jikanService.getTopManga(limit: 10),
         _jikanService.getTodosProductos(),
       ]).timeout(const Duration(seconds: 30));
-      
+
       setState(() {
-        tendencias = results[0];
-        populares = results[1];
-        todosProductos = results[2];
+        // Filtrar el anime falso de Steel Ball Run (ID 15125)
+        tendencias = results[0].where((p) => p.malId != 15125).toList();
+        populares = results[1].where((p) => p.malId != 15125).toList();
+        todosProductos = results[2].where((p) => p.malId != 15125).toList();
         isLoading = false;
       });
-      
-      print('Datos cargados: ${tendencias.length} animes, ${populares.length} mangas, ${todosProductos.length} total');
+
+      print(
+        'Datos cargados: ${tendencias.length} animes, ${populares.length} mangas, ${todosProductos.length} total',
+      );
     } catch (e) {
       print('Error: $e');
       setState(() {
