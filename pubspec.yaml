@@ -14,20 +14,19 @@ dependencies:
   firebase_core: ^4.4.0
   firebase_auth: ^6.1.4
   cloud_firestore: ^6.1.2
-  firebase_storage: ^13.0.6  # Actualizado a la última versión
+  firebase_storage: ^13.0.6
   
   # Imágenes
-  image_picker: ^1.1.2
+  image_picker: 1.2.0
+  cached_network_image: ^3.4.1  # ✅ ya está
   
   # HTTP y utilidades
-  http: ^1.1.0
+  http: ^1.6.0  # ← solo una vez (versión más reciente)
   google_fonts: ^8.0.2
   flutter_dotenv: ^5.1.0
+  file_picker: ^11.0.2
+  intl: ^0.20.2
   
-  # MongoDB
-  mongo_dart: ^0.9.0
-  http: ^1.6.0
-  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

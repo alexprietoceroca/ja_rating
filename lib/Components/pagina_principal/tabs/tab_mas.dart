@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
 import 'package:ja_rating/Paginas/pagina_tierlist.dart';
+import 'package:ja_rating/Paginas/pagina_foro.dart'; // Añadir esta importación
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ja_rating/Paginas/pagina_login.dart';
 
@@ -125,11 +126,20 @@ class _TabMasState extends State<TabMas> with AutomaticKeepAliveClientMixin, Sin
                     ),
                     const SizedBox(width: 14),
                     Expanded(
-                      child: _CartaFuncionalidad(
-                        icono: Icons.forum_rounded,
-                        etiqueta: 'Foros',
-                        descripcion: 'Discute con la comunidad',
-                        color: Coloresapp.colorMorado,
+                      child: GestureDetector(
+                        onTap: () {
+                          // REDIRIGIR A LA PÁGINA DE FOROS
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const PaginaForo()),
+                          );
+                        },
+                        child: _CartaFuncionalidad(
+                          icono: Icons.forum_rounded,
+                          etiqueta: 'Foros',
+                          descripcion: 'Discute con la comunidad',
+                          color: Coloresapp.colorMorado,
+                        ),
                       ),
                     ),
                   ],
@@ -141,10 +151,19 @@ class _TabMasState extends State<TabMas> with AutomaticKeepAliveClientMixin, Sin
                 ),
                 const SizedBox(height: 12),
                 ...foros.map(
-                  (f) => _ItemForo(
-                    titulo: f['titulo'] as String,
-                    respuestas: f['respuestas'] as int,
-                    destacado: f['destacado'] as bool,
+                  (f) => GestureDetector(
+                    onTap: () {
+                      // También puedes redirigir al hacer clic en un foro popular
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PaginaForo()),
+                      );
+                    },
+                    child: _ItemForo(
+                      titulo: f['titulo'] as String,
+                      respuestas: f['respuestas'] as int,
+                      destacado: f['destacado'] as bool,
+                    ),
                   ),
                 ),
               ],
