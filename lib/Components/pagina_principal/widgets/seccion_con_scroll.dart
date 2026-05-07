@@ -73,7 +73,6 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
   Widget build(BuildContext context) {
     final double anchoCarta = widget.esWeb ? 200 : 200;
     final double padding = widget.esWeb ? 40 : 20;
-    // Usamos el método estático para calcular la altura (sin extras)
     final double altoCarta = ProductosCarta.calcularAltura(
       anchoCarta,
       mostrarExtra: false,
@@ -86,16 +85,21 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
           padding: EdgeInsets.symmetric(horizontal: padding),
           child: Row(
             children: [
-              Icon(widget.icono, color: Coloresapp.colorPrimario, size: 22),
+              Icon(widget.icono, color: Colors.white, size: 22),
               const SizedBox(width: 8),
               Text(
                 widget.titulo,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
-                  foreground: Paint()
-                    ..blendMode = BlendMode.difference
-                    ..color = Colors.white,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 4,
+                      color: Colors.black26,
+                    ),
+                  ],
                 ),
               ),
               if (widget.etiqueta != null) ...[
@@ -112,7 +116,7 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
                   child: Text(
                     widget.etiqueta!,
                     style: const TextStyle(
-                      color: Coloresapp.colorBlanco,
+                      color: Colors.white,
                       fontSize: 9,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1,
@@ -125,10 +129,7 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
                 Expanded(
                   child: Text(
                     widget.subtitulo!,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Coloresapp.colorTextoFlojo,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -159,21 +160,23 @@ class _SeccionConScrollState extends State<SeccionConScroll> {
             padding: EdgeInsets.only(left: padding),
             itemCount: widget.items.length,
             itemBuilder: (context, i) {
+              final item = widget.items[i];
               return ProductosCarta(
-                titulo: widget.items[i]['titulo'],
-                tituloIngles: widget.items[i]['tituloIngles'],
-                tituloOriginal: widget.items[i]['tituloOriginal'],
-                genero: widget.items[i]['genero'],
-                tipo: widget.items[i]['tipo'],
-                puntuacion: widget.items[i]['puntuacion'].toDouble(),
-                urlImagen: widget.items[i]['img'],
-                descripcion: widget.items[i]['descripcion'],
+                malId: item['malId'] ?? 0,
+                titulo: item['titulo'] ?? '',
+                tituloIngles: item['tituloIngles'] ?? '',
+                tituloOriginal: item['tituloOriginal'] ?? '',
+                genero: item['genero'] ?? '',
+                tipo: item['tipo'] ?? '',
+                puntuacion: (item['puntuacion'] ?? 0.0).toDouble(),
+                urlImagen: item['img'] ?? '',
+                descripcion: item['descripcion'] ?? '',
                 anchoCarta: anchoCarta,
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => PaginaProducto(producto: widget.items[i]),
+                      builder: (_) => PaginaProducto(producto: item),
                     ),
                   );
                 },
@@ -197,7 +200,6 @@ class _BotonScroll extends StatelessWidget {
   final IconData icono;
   final bool activo;
   final VoidCallback alPresionar;
-
   const _BotonScroll({
     required this.icono,
     required this.activo,
@@ -237,7 +239,6 @@ class _BotonScroll extends StatelessWidget {
 
 class _BarraProgreso extends StatefulWidget {
   final ScrollController controladorScroll;
-
   const _BarraProgreso({required this.controladorScroll});
 
   @override
@@ -278,7 +279,6 @@ class _BarraProgresoState extends State<_BarraProgreso> {
           60.0,
           anchoBarra,
         );
-
         return Container(
           height: 4,
           width: anchoBarra,

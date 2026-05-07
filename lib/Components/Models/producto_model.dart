@@ -64,7 +64,7 @@ class ProductoModel {
     final malId = data['mal_id'] ?? 0;
     final urlOriginal = data['images']?['jpg']?['image_url'] ?? '';
     final imagenUrl = ImageService.getImagenUrl(malId, urlOriginal);
-    
+
     int? anioExtraido;
     if (data['year'] != null) {
       anioExtraido = data['year'];
@@ -74,32 +74,33 @@ class ProductoModel {
         anioExtraido = int.tryParse(fechaString.substring(0, 4));
       }
     }
-    
+
     return ProductoModel(
       malId: malId,
       titulo: data['title'] ?? 'Sin titulo',
       tituloIngles: data['title_english'] ?? data['title'] ?? 'Sin titulo',
       tituloOriginal: data['title_japanese'] ?? '',
-      tipo: _determinarTipo(data['type'], data['title'] ?? ''),
-      puntuacion: (data['score'] ?? 0.0).toDouble(),
+      tipo: _determinarTipo(data['type'], data['title'] ?? '', malId),
+      puntuacion: ((data['score'] ?? 0.0).toDouble() / 2),
       imagenUrl: imagenUrl,
       sinopsis: data['synopsis'] ?? 'Sin sinopsis disponible',
-      genero: data['genres'] != null && data['genres'].isNotEmpty 
-          ? data['genres'][0]['name'] 
+      genero: data['genres'] != null && data['genres'].isNotEmpty
+          ? data['genres'][0]['name']
           : 'Sin genero',
-      generos: data['genres'] != null 
+      generos: data['genres'] != null
           ? (data['genres'] as List).map((g) => g['name'] as String).toList()
           : [],
-      autor: data['authors'] != null && data['authors'].isNotEmpty 
-          ? data['authors'][0]['name'] 
+      autor: data['authors'] != null && data['authors'].isNotEmpty
+          ? data['authors'][0]['name']
           : null,
       anio: anioExtraido,
-      estudio: data['studios'] != null && data['studios'].isNotEmpty 
-          ? data['studios'][0]['name'] 
+      estudio: data['studios'] != null && data['studios'].isNotEmpty
+          ? data['studios'][0]['name']
           : null,
       episodios: data['episodes'],
-      demografia: data['demographics'] != null && data['demographics'].isNotEmpty 
-          ? data['demographics'][0]['name'] 
+      demografia:
+          data['demographics'] != null && data['demographics'].isNotEmpty
+          ? data['demographics'][0]['name']
           : null,
       estado: data['status'],
     );
@@ -112,7 +113,7 @@ class ProductoModel {
     final imagenUrl = ImageService.getImagenUrl(malId, urlOriginal);
     final tipoOriginal = data['type'] ?? 'Manga';
     final tituloCompleto = data['title'] ?? '';
-    
+
     int? anioExtraido;
     if (data['published'] != null && data['published']['from'] != null) {
       final fechaString = data['published']['from'].toString();
@@ -120,53 +121,59 @@ class ProductoModel {
         anioExtraido = int.tryParse(fechaString.substring(0, 4));
       }
     }
-    
+
     return ProductoModel(
       malId: malId,
       titulo: tituloCompleto,
       tituloIngles: data['title_english'] ?? data['title'] ?? 'Sin titulo',
       tituloOriginal: data['title_japanese'] ?? '',
-      tipo: _mapearTipoManga(tipoOriginal, tituloCompleto),
-      puntuacion: (data['score'] ?? 0.0).toDouble(),
+      tipo: _mapearTipoManga(tipoOriginal, tituloCompleto, malId),
+      puntuacion: ((data['score'] ?? 0.0).toDouble() / 2),
       imagenUrl: imagenUrl,
       sinopsis: data['synopsis'] ?? 'Sin sinopsis disponible',
-      genero: data['genres'] != null && data['genres'].isNotEmpty 
-          ? data['genres'][0]['name'] 
+      genero: data['genres'] != null && data['genres'].isNotEmpty
+          ? data['genres'][0]['name']
           : 'Sin genero',
-      generos: data['genres'] != null 
+      generos: data['genres'] != null
           ? (data['genres'] as List).map((g) => g['name'] as String).toList()
           : [],
-      autor: data['authors'] != null && data['authors'].isNotEmpty 
-          ? data['authors'][0]['name'] 
+      autor: data['authors'] != null && data['authors'].isNotEmpty
+          ? data['authors'][0]['name']
           : null,
       anio: anioExtraido,
-      estudio: data['authors'] != null && data['authors'].isNotEmpty 
-          ? data['authors'][0]['name'] 
+      estudio: data['authors'] != null && data['authors'].isNotEmpty
+          ? data['authors'][0]['name']
           : null,
       episodios: data['chapters'],
-      demografia: data['demographics'] != null && data['demographics'].isNotEmpty 
-          ? data['demographics'][0]['name'] 
+      demografia:
+          data['demographics'] != null && data['demographics'].isNotEmpty
+          ? data['demographics'][0]['name']
           : null,
       estado: data['status'],
     );
   }
 
-  static String _determinarTipo(String? type, String titulo) {
-    if (_esMangaEnLugarDeAnime(titulo)) {
-      return 'Manga';
-    }
-    
+  static String _determinarTipo(String? type, String titulo, int malId) {
+    if (malId == 15125) return 'Donghua'; // para evitar el falso anime
+    if (_esMangaEnLugarDeAnime(titulo)) return 'Manga';
     switch (type) {
-      case 'TV': return 'Anime';
-      case 'Movie': return 'Anime';
-      case 'OVA': return 'Anime';
-      case 'Special': return 'Anime';
-      case 'ONA': return 'Donghua';
-      default: return 'Anime';
+      case 'TV':
+        return 'Anime';
+      case 'Movie':
+        return 'Anime';
+      case 'OVA':
+        return 'Anime';
+      case 'Special':
+        return 'Anime';
+      case 'ONA':
+        return 'Donghua';
+      default:
+        return 'Anime';
     }
   }
 
-  static String _mapearTipoManga(String type, String titulo) {
+  static String _mapearTipoManga(String type, String titulo, int malId) {
+    if (malId == 1706) return 'Manga';
     final List<String> mangasConfirmados = [
       'Steel Ball Run',
       'JoJo no Kimyou na Bouken',
@@ -204,23 +211,25 @@ class ProductoModel {
       'Akira',
       'Ghost in the Shell',
     ];
-    
     for (String manga in mangasConfirmados) {
-      if (titulo.contains(manga)) {
-        return 'Manga';
-      }
+      if (titulo.contains(manga)) return 'Manga';
     }
-    
     switch (type) {
-      case 'Manhwa': return 'Manhwa';
-      case 'Manhua': return 'Manhua';
-      case 'Manga': return 'Manga';
-      case 'Novel': return 'Novela';
-      case 'Light Novel': return 'Novela Ligera';
-      default: return 'Manga';
+      case 'Manhwa':
+        return 'Manhwa';
+      case 'Manhua':
+        return 'Manhua';
+      case 'Manga':
+        return 'Manga';
+      case 'Novel':
+        return 'Novela';
+      case 'Light Novel':
+        return 'Novela Ligera';
+      default:
+        return 'Manga';
     }
   }
-  
+
   static bool _esMangaEnLugarDeAnime(String titulo) {
     final List<String> mangasSinAnime = [
       'Steel Ball Run',
@@ -233,11 +242,8 @@ class ProductoModel {
       'Homunculus',
       'Gantz',
     ];
-    
     for (String manga in mangasSinAnime) {
-      if (titulo.contains(manga)) {
-        return true;
-      }
+      if (titulo.contains(manga)) return true;
     }
     return false;
   }
