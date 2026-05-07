@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import '../coloresapp.dart';
-import '../Components/Login/texto_normal.dart';
-import '../Components/Login/texto_titulo.dart';
+import 'package:ja_rating/coloresapp.dart';
+import 'package:ja_rating/Components/Login/texto_normal.dart';
+import 'package:ja_rating/Components/Login/texto_titulo.dart';
 
 class PaginaForo extends StatefulWidget {
   const PaginaForo({super.key});
@@ -15,7 +15,8 @@ class PaginaForo extends StatefulWidget {
   State<PaginaForo> createState() => _PaginaForoState();
 }
 
-class _PaginaForoState extends State<PaginaForo> with SingleTickerProviderStateMixin {
+class _PaginaForoState extends State<PaginaForo>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -26,7 +27,14 @@ class _PaginaForoState extends State<PaginaForo> with SingleTickerProviderStateM
   String _categoriaSeleccionada = 'Todo';
 
   final List<String> _categorias = [
-    'Todo', 'Anime', 'Manga', 'Manhwa', 'Donghua', 'Noticias', 'Debates', 'Recomendaciones'
+    'Todo',
+    'Anime',
+    'Manga',
+    'Manhwa',
+    'Donghua',
+    'Noticias',
+    'Debates',
+    'Recomendaciones',
   ];
 
   @override
@@ -62,7 +70,7 @@ class _PaginaForoState extends State<PaginaForo> with SingleTickerProviderStateM
           'fecha': (doc.data()['fecha'] as Timestamp).toDate(),
         };
       }).toList();
-      
+
       // Foros populares (ordenados por respuestas y visitas)
       _forosPopulares = List.from(_forosRecientes);
       _forosPopulares.sort((a, b) {
@@ -70,13 +78,12 @@ class _PaginaForoState extends State<PaginaForo> with SingleTickerProviderStateM
         int scoreB = (b['respuestas'] as int) + ((b['vistas'] as int) ~/ 100);
         return scoreB.compareTo(scoreA);
       });
-      
+
       if (_forosPopulares.length > 10) {
         _forosPopulares = _forosPopulares.sublist(0, 10);
       }
-      
+
       _forosCategoria = List.from(_forosRecientes);
-      
     } catch (e) {
       print('Error al cargar foros: $e');
       _forosRecientes = [];
@@ -118,7 +125,9 @@ class _PaginaForoState extends State<PaginaForo> with SingleTickerProviderStateM
       final user = _auth.currentUser;
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Debes iniciar sesión para crear un foro')),
+          const SnackBar(
+            content: Text('Debes iniciar sesión para crear un foro'),
+          ),
         );
         return;
       }
@@ -137,7 +146,7 @@ class _PaginaForoState extends State<PaginaForo> with SingleTickerProviderStateM
       };
 
       await _firestore.collection('foros').add(nuevoForo);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Foro creado exitosamente')),
@@ -147,9 +156,9 @@ class _PaginaForoState extends State<PaginaForo> with SingleTickerProviderStateM
     } catch (e) {
       print('Error al guardar foro: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -197,8 +206,14 @@ class _PaginaForoState extends State<PaginaForo> with SingleTickerProviderStateM
           : TabBarView(
               controller: _tabController,
               children: [
-                _ListaForos(foros: _forosPopulares, onTap: (foro) => _abrirForo(foro)),
-                _ListaForos(foros: _forosRecientes, onTap: (foro) => _abrirForo(foro)),
+                _ListaForos(
+                  foros: _forosPopulares,
+                  onTap: (foro) => _abrirForo(foro),
+                ),
+                _ListaForos(
+                  foros: _forosRecientes,
+                  onTap: (foro) => _abrirForo(foro),
+                ),
                 Column(
                   children: [
                     Container(
@@ -213,7 +228,9 @@ class _PaginaForoState extends State<PaginaForo> with SingleTickerProviderStateM
                           return FilterChip(
                             label: Text(cat),
                             selected: _categoriaSeleccionada == cat,
-                            selectedColor: Coloresapp.colorPrimario.withOpacity(0.2),
+                            selectedColor: Coloresapp.colorPrimario.withOpacity(
+                              0.2,
+                            ),
                             onSelected: (_) {
                               setState(() {
                                 _categoriaSeleccionada = cat;
@@ -225,7 +242,10 @@ class _PaginaForoState extends State<PaginaForo> with SingleTickerProviderStateM
                       ),
                     ),
                     Expanded(
-                      child: _ListaForos(foros: _forosCategoria, onTap: (foro) => _abrirForo(foro)),
+                      child: _ListaForos(
+                        foros: _forosCategoria,
+                        onTap: (foro) => _abrirForo(foro),
+                      ),
                     ),
                   ],
                 ),
@@ -247,9 +267,7 @@ class _PaginaForoState extends State<PaginaForo> with SingleTickerProviderStateM
   void _abrirForo(Map<String, dynamic> foro) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => PaginaDetalleForo(foro: foro),
-      ),
+      MaterialPageRoute(builder: (context) => PaginaDetalleForo(foro: foro)),
     ).then((_) => _cargarForos());
   }
 }
@@ -294,20 +312,29 @@ class _CardForo extends StatelessWidget {
 
   Color _getColorCategoria(String categoria) {
     switch (categoria) {
-      case 'Anime': return Coloresapp.colorPrimario;
-      case 'Manga': return Coloresapp.colorContorno;
-      case 'Manhwa': return Coloresapp.colorMorado;
-      case 'Donghua': return Coloresapp.colorNaranja;
-      default: return Colors.grey;
+      case 'Anime':
+        return Coloresapp.colorPrimario;
+      case 'Manga':
+        return Coloresapp.colorContorno;
+      case 'Manhwa':
+        return Coloresapp.colorMorado;
+      case 'Donghua':
+        return Coloresapp.colorNaranja;
+      default:
+        return Colors.grey;
     }
   }
 
   IconData _getIconoTipo(String tipo) {
     switch (tipo) {
-      case 'Noticias': return Icons.newspaper_rounded;
-      case 'Debates': return Icons.psychology_rounded;
-      case 'Recomendaciones': return Icons.recommend_rounded;
-      default: return Icons.chat_bubble_outline_rounded;
+      case 'Noticias':
+        return Icons.newspaper_rounded;
+      case 'Debates':
+        return Icons.psychology_rounded;
+      case 'Recomendaciones':
+        return Icons.recommend_rounded;
+      default:
+        return Icons.chat_bubble_outline_rounded;
     }
   }
 
@@ -316,13 +343,16 @@ class _CardForo extends StatelessWidget {
     final fecha = foro['fecha'] as DateTime;
     final diferencia = DateTime.now().difference(fecha);
     String fechaString;
-    
+
     if (diferencia.inDays > 0) {
-      fechaString = 'Hace ${diferencia.inDays} día${diferencia.inDays > 1 ? 's' : ''}';
+      fechaString =
+          'Hace ${diferencia.inDays} día${diferencia.inDays > 1 ? 's' : ''}';
     } else if (diferencia.inHours > 0) {
-      fechaString = 'Hace ${diferencia.inHours} hora${diferencia.inHours > 1 ? 's' : ''}';
+      fechaString =
+          'Hace ${diferencia.inHours} hora${diferencia.inHours > 1 ? 's' : ''}';
     } else {
-      fechaString = 'Hace ${diferencia.inMinutes} minuto${diferencia.inMinutes > 1 ? 's' : ''}';
+      fechaString =
+          'Hace ${diferencia.inMinutes} minuto${diferencia.inMinutes > 1 ? 's' : ''}';
     }
 
     return GestureDetector(
@@ -334,7 +364,11 @@ class _CardForo extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2)),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
           ],
         ),
         child: Column(
@@ -343,31 +377,64 @@ class _CardForo extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
-                    color: _getColorCategoria(foro['categoria']).withOpacity(0.1),
+                    color: _getColorCategoria(
+                      foro['categoria'],
+                    ).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(_getIconoTipo(foro['tipo']), size: 12, color: _getColorCategoria(foro['categoria'])),
+                      Icon(
+                        _getIconoTipo(foro['tipo']),
+                        size: 12,
+                        color: _getColorCategoria(foro['categoria']),
+                      ),
                       const SizedBox(width: 4),
-                      Text(foro['categoria'], style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _getColorCategoria(foro['categoria']))),
+                      Text(
+                        foro['categoria'],
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: _getColorCategoria(foro['categoria']),
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 if (foro['destacado'] == true) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: Coloresapp.colorPrimario.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Coloresapp.colorPrimario.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.local_fire_department_rounded, size: 10, color: Coloresapp.colorPrimario),
+                        Icon(
+                          Icons.local_fire_department_rounded,
+                          size: 10,
+                          color: Coloresapp.colorPrimario,
+                        ),
                         SizedBox(width: 2),
-                        Text('Hot', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Coloresapp.colorPrimario)),
+                        Text(
+                          'Hot',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Coloresapp.colorPrimario,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -375,11 +442,24 @@ class _CardForo extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            Text(foro['titulo'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Coloresapp.colorCasiNegro)),
+            Text(
+              foro['titulo'],
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Coloresapp.colorCasiNegro,
+              ),
+            ),
             const SizedBox(height: 8),
             Text(
-              foro['contenido'].length > 120 ? '${foro['contenido'].substring(0, 120)}...' : foro['contenido'],
-              style: TextStyle(fontSize: 12, color: Coloresapp.colorTextoFlojo, height: 1.4),
+              foro['contenido'].length > 120
+                  ? '${foro['contenido'].substring(0, 120)}...'
+                  : foro['contenido'],
+              style: TextStyle(
+                fontSize: 12,
+                color: Coloresapp.colorTextoFlojo,
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -387,24 +467,48 @@ class _CardForo extends StatelessWidget {
                 CircleAvatar(
                   radius: 12,
                   backgroundColor: Coloresapp.colorPrimario.withOpacity(0.1),
-                  child: Icon(Icons.person_rounded, size: 14, color: Coloresapp.colorPrimario),
+                  child: Icon(
+                    Icons.person_rounded,
+                    size: 14,
+                    color: Coloresapp.colorPrimario,
+                  ),
                 ),
                 const SizedBox(width: 6),
-                Text(foro['autor'], style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Coloresapp.colorPrimario)),
+                Text(
+                  foro['autor'],
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Coloresapp.colorPrimario,
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Icon(Icons.access_time_rounded, size: 12, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(fechaString, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                Text(
+                  fechaString,
+                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                ),
                 const Spacer(),
                 Row(
                   children: [
                     Icon(Icons.comment_rounded, size: 14, color: Colors.grey),
                     const SizedBox(width: 4),
-                    Text('${foro['respuestas']}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text(
+                      '${foro['respuestas']}',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
                     const SizedBox(width: 12),
-                    Icon(Icons.remove_red_eye_rounded, size: 14, color: Colors.grey),
+                    Icon(
+                      Icons.remove_red_eye_rounded,
+                      size: 14,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(width: 4),
-                    Text('${foro['vistas']}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text(
+                      '${foro['vistas']}',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
                   ],
                 ),
               ],
@@ -453,36 +557,63 @@ class _DialogNuevoForoState extends State<_DialogNuevoForo> {
             children: [
               TextFormField(
                 controller: _tituloController,
-                decoration: const InputDecoration(labelText: 'Título', border: OutlineInputBorder()),
-                validator: (value) => value?.isEmpty ?? true ? 'Ingresa un título' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Título',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Ingresa un título' : null,
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _categoria,
-                decoration: const InputDecoration(labelText: 'Categoría', border: OutlineInputBorder()),
-                items: _categorias.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                initialValue: _categoria,
+                decoration: const InputDecoration(
+                  labelText: 'Categoría',
+                  border: OutlineInputBorder(),
+                ),
+                items: _categorias
+                    .map(
+                      (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
+                    )
+                    .toList(),
                 onChanged: (value) => setState(() => _categoria = value!),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _tipo,
-                decoration: const InputDecoration(labelText: 'Tipo', border: OutlineInputBorder()),
-                items: _tipos.map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo))).toList(),
+                initialValue: _tipo,
+                decoration: const InputDecoration(
+                  labelText: 'Tipo',
+                  border: OutlineInputBorder(),
+                ),
+                items: _tipos
+                    .map(
+                      (tipo) =>
+                          DropdownMenuItem(value: tipo, child: Text(tipo)),
+                    )
+                    .toList(),
                 onChanged: (value) => setState(() => _tipo = value!),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _contenidoController,
                 maxLines: 5,
-                decoration: const InputDecoration(labelText: 'Contenido', border: OutlineInputBorder(), alignLabelWithHint: true),
-                validator: (value) => value?.isEmpty ?? true ? 'Ingresa el contenido' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Contenido',
+                  border: OutlineInputBorder(),
+                  alignLabelWithHint: true,
+                ),
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Ingresa el contenido' : null,
               ),
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         ElevatedButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
@@ -495,7 +626,9 @@ class _DialogNuevoForoState extends State<_DialogNuevoForo> {
               Navigator.pop(context);
             }
           },
-          style: ElevatedButton.styleFrom(backgroundColor: Coloresapp.colorPrimario),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Coloresapp.colorPrimario,
+          ),
           child: const Text('Crear'),
         ),
       ],
@@ -514,12 +647,12 @@ class _DialogBuscadorForos extends StatefulWidget {
 
 class _DialogBuscadorForosState extends State<_DialogBuscadorForos> {
   String _busqueda = '';
-  
+
   List<Map<String, dynamic>> get _forosFiltrados {
     if (_busqueda.isEmpty) return [];
     return widget.foros.where((foro) {
       return foro['titulo'].toLowerCase().contains(_busqueda.toLowerCase()) ||
-             foro['contenido'].toLowerCase().contains(_busqueda.toLowerCase());
+          foro['contenido'].toLowerCase().contains(_busqueda.toLowerCase());
     }).toList();
   }
 
@@ -546,29 +679,38 @@ class _DialogBuscadorForosState extends State<_DialogBuscadorForos> {
               child: _busqueda.isEmpty
                   ? const Center(child: Text('Escribe algo para buscar'))
                   : _forosFiltrados.isEmpty
-                      ? const Center(child: Text('No se encontraron resultados'))
-                      : ListView.builder(
-                          itemCount: _forosFiltrados.length,
-                          itemBuilder: (context, index) {
-                            final foro = _forosFiltrados[index];
-                            return ListTile(
-                              title: Text(foro['titulo'], maxLines: 1, overflow: TextOverflow.ellipsis),
-                              subtitle: Text(
-                                foro['contenido'].length > 50 ? '${foro['contenido'].substring(0, 50)}...' : foro['contenido']
-                              ),
-                              onTap: () {
-                                Navigator.pop(context);
-                                widget.onTap(foro);
-                              },
-                            );
+                  ? const Center(child: Text('No se encontraron resultados'))
+                  : ListView.builder(
+                      itemCount: _forosFiltrados.length,
+                      itemBuilder: (context, index) {
+                        final foro = _forosFiltrados[index];
+                        return ListTile(
+                          title: Text(
+                            foro['titulo'],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            foro['contenido'].length > 50
+                                ? '${foro['contenido'].substring(0, 50)}...'
+                                : foro['contenido'],
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            widget.onTap(foro);
                           },
-                        ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cerrar'),
+        ),
       ],
     );
   }
@@ -666,16 +808,16 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
       await _cargarComentarios();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Comentario agregado')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Comentario agregado')));
       }
     } catch (e) {
       print('Error al agregar comentario: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -693,7 +835,10 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(widget.foro['titulo'], style: const TextStyle(color: Colors.white, fontSize: 16)),
+        title: Text(
+          widget.foro['titulo'],
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
       ),
       body: Column(
         children: [
@@ -705,7 +850,10 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -713,38 +861,91 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
                           children: [
                             CircleAvatar(
                               radius: 16,
-                              backgroundColor: Coloresapp.colorPrimario.withOpacity(0.1),
-                              child: Icon(Icons.person_rounded, size: 16, color: Coloresapp.colorPrimario),
+                              backgroundColor: Coloresapp.colorPrimario
+                                  .withOpacity(0.1),
+                              child: Icon(
+                                Icons.person_rounded,
+                                size: 16,
+                                color: Coloresapp.colorPrimario,
+                              ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(widget.foro['autor'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                  Text(formatter.format(fecha), style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                                  Text(
+                                    widget.foro['autor'],
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  Text(
+                                    formatter.format(fecha),
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(color: Coloresapp.colorPrimario.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                              child: Text(widget.foro['categoria'], style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Coloresapp.colorPrimario)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Coloresapp.colorPrimario.withOpacity(
+                                  0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                widget.foro['categoria'],
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Coloresapp.colorPrimario,
+                                ),
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 16),
-                        Text(widget.foro['titulo'], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        Text(
+                          widget.foro['titulo'],
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 16),
-                        Text(widget.foro['contenido'], style: TextStyle(fontSize: 14, color: Coloresapp.colorTexto, height: 1.5)),
+                        Text(
+                          widget.foro['contenido'],
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Coloresapp.colorTexto,
+                            height: 1.5,
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            Icon(Icons.comment_rounded, size: 14, color: Colors.grey),
+                            Icon(
+                              Icons.comment_rounded,
+                              size: 14,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text('${widget.foro['respuestas']} respuestas'),
                             const SizedBox(width: 16),
-                            Icon(Icons.remove_red_eye_rounded, size: 14, color: Colors.grey),
+                            Icon(
+                              Icons.remove_red_eye_rounded,
+                              size: 14,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text('${widget.foro['vistas']} vistas'),
                           ],
@@ -753,24 +954,36 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text('Comentarios', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Comentarios',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 12),
                   if (_cargando)
                     const Center(child: CircularProgressIndicator())
                   else if (_comentarios.isEmpty)
                     Container(
                       padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       child: const Column(
                         children: [
-                          Icon(Icons.chat_bubble_outline_rounded, size: 48, color: Colors.grey),
+                          Icon(
+                            Icons.chat_bubble_outline_rounded,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
                           SizedBox(height: 8),
                           Text('No hay comentarios aún. ¡Sé el primero!'),
                         ],
                       ),
                     )
                   else
-                    ..._comentarios.map((comentario) => _ComentarioCard(comentario: comentario)),
+                    ..._comentarios.map(
+                      (comentario) => _ComentarioCard(comentario: comentario),
+                    ),
                 ],
               ),
             ),
@@ -779,7 +992,13 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), offset: const Offset(0, -2), blurRadius: 8)],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  offset: const Offset(0, -2),
+                  blurRadius: 8,
+                ),
+              ],
             ),
             child: Row(
               children: [
@@ -788,8 +1007,13 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
                     controller: _comentarioController,
                     decoration: InputDecoration(
                       hintText: 'Escribe un comentario...',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(25)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                     ),
                     maxLines: null,
                   ),
@@ -798,7 +1022,11 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
                 CircleAvatar(
                   backgroundColor: Coloresapp.colorPrimario,
                   child: IconButton(
-                    icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                    icon: const Icon(
+                      Icons.send_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     onPressed: _agregarComentario,
                   ),
                 ),
@@ -823,7 +1051,10 @@ class _ComentarioCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -832,16 +1063,32 @@ class _ComentarioCard extends StatelessWidget {
               CircleAvatar(
                 radius: 14,
                 backgroundColor: Coloresapp.colorPrimario.withOpacity(0.1),
-                child: Icon(Icons.person_rounded, size: 14, color: Coloresapp.colorPrimario),
+                child: Icon(
+                  Icons.person_rounded,
+                  size: 14,
+                  color: Coloresapp.colorPrimario,
+                ),
               ),
               const SizedBox(width: 10),
-              Text(comentario['autor'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(
+                comentario['autor'],
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
               const SizedBox(width: 10),
-              Text(formatter.format(fecha), style: const TextStyle(fontSize: 10, color: Colors.grey)),
+              Text(
+                formatter.format(fecha),
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+              ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(comentario['contenido'], style: const TextStyle(fontSize: 13, height: 1.4)),
+          Text(
+            comentario['contenido'],
+            style: const TextStyle(fontSize: 13, height: 1.4),
+          ),
         ],
       ),
     );
