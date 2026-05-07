@@ -84,9 +84,9 @@ class ProductosCarta extends StatefulWidget {
   static double calcularAltura(double ancho, {bool mostrarExtra = false}) {
     final double altoImagen = ancho * 1.25;
     if (mostrarExtra) {
-      return altoImagen + 80;
+      return altoImagen + 95;
     } else {
-      return altoImagen + 80;
+      return altoImagen + 95;
     }
   }
 

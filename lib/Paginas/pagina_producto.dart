@@ -1,9 +1,10 @@
 // pagina_producto.dart
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:ja_rating/coloresApp.dart';
+import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
 import 'package:ja_rating/Components/Login/texto_titulo.dart';
+import 'package:ja_rating/Components/CustomProductImage.dart';
 
 class PaginaProducto extends StatelessWidget {
   final Map<String, dynamic> producto;
@@ -31,30 +32,36 @@ class PaginaProducto extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool esWeb = MediaQuery.of(context).size.width > 800;
     final double padding = esWeb ? 40 : 20;
+    final int malId = producto['malId'] ?? 0;
 
     return Scaffold(
       backgroundColor: Coloresapp.colorFondo,
       body: CustomScrollView(
         slivers: [
-          // Cabecera con imagen
           SliverAppBar(
             expandedHeight: 320,
             pinned: true,
-            backgroundColor: colorTipo,
+            backgroundColor: colorTipo, // color de respaldo si la imagen falla
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+              icon: const Icon(
+                Icons.arrow_back_ios_rounded,
+                color: Colors.white,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: producto['img'] ?? '',
+                  // IMAGEN PERSONALIZADA DE FONDO (desde Firebase)
+                  CustomProductImage(
+                    malId: malId,
+                    originalUrl: producto['img'] ?? '',
+                    width: double.infinity,
+                    height: double.infinity,
                     fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => Container(color: colorTipo),
-                    placeholder: (_, __) => Container(color: colorTipo),
                   ),
+                  // DEGRADADO OSCURO PARA LEGIBILIDAD DEL TEXTO
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -67,6 +74,7 @@ class PaginaProducto extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // CONTENIDO TEXTUAL
                   Positioned(
                     bottom: 20,
                     left: padding,
@@ -75,7 +83,10 @@ class PaginaProducto extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.25),
                             borderRadius: BorderRadius.circular(20),
@@ -104,7 +115,7 @@ class PaginaProducto extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          producto['tituloIngles'] ?? '',
+                          producto['tituloOriginal'] ?? '',
                           style: TextStyle(
                             fontFamily: 'HoshikoSatsuki',
                             color: Colors.white.withOpacity(0.8),
@@ -118,8 +129,7 @@ class PaginaProducto extends StatelessWidget {
               ),
             ),
           ),
-
-          // Contenido
+          // ... el resto del SliverToBoxAdapter (sin cambios)
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.all(padding),
@@ -127,16 +137,34 @@ class PaginaProducto extends StatelessWidget {
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(flex: 3, child: _ColumnaIzquierda(producto: producto, colorTipo: colorTipo)),
+                        Expanded(
+                          flex: 3,
+                          child: _ColumnaIzquierda(
+                            producto: producto,
+                            colorTipo: colorTipo,
+                          ),
+                        ),
                         const SizedBox(width: 32),
-                        Expanded(flex: 2, child: _ColumnaDerecha(producto: producto, colorTipo: colorTipo)),
+                        Expanded(
+                          flex: 2,
+                          child: _ColumnaDerecha(
+                            producto: producto,
+                            colorTipo: colorTipo,
+                          ),
+                        ),
                       ],
                     )
                   : Column(
                       children: [
-                        _ColumnaIzquierda(producto: producto, colorTipo: colorTipo),
+                        _ColumnaIzquierda(
+                          producto: producto,
+                          colorTipo: colorTipo,
+                        ),
                         const SizedBox(height: 24),
-                        _ColumnaDerecha(producto: producto, colorTipo: colorTipo),
+                        _ColumnaDerecha(
+                          producto: producto,
+                          colorTipo: colorTipo,
+                        ),
                       ],
                     ),
             ),
@@ -206,9 +234,11 @@ class _ColumnaIzquierda extends StatelessWidget {
                           colorText: Coloresapp.colorTextoFlojo,
                         ),
                         const SizedBox(width: 4),
-                        Icon(Icons.star_rounded,
-                            size: 12,
-                            color: colorTipo.withOpacity(0.4 + (i * 0.15))),
+                        Icon(
+                          Icons.star_rounded,
+                          size: 12,
+                          color: colorTipo.withOpacity(0.4 + (i * 0.15)),
+                        ),
                       ],
                     ),
                   );
@@ -256,22 +286,29 @@ class _ColumnaIzquierda extends StatelessWidget {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: ((producto['generos'] as List<String>?) ?? [producto['genero'] as String])
-              .map((g) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: colorTipo.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: colorTipo.withOpacity(0.3)),
+          children:
+              ((producto['generos'] as List<String>?) ??
+                      [producto['genero'] as String])
+                  .map(
+                    (g) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorTipo.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: colorTipo.withOpacity(0.3)),
+                      ),
+                      child: TextoNormal(
+                        contingutText: g,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        colorText: colorTipo,
+                      ),
                     ),
-                    child: TextoNormal(
-                      contingutText: g,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      colorText: colorTipo,
-                    ),
-                  ))
-              .toList(),
+                  )
+                  .toList(),
         ),
 
         const SizedBox(height: 20),
@@ -290,65 +327,87 @@ class _ColumnaIzquierda extends StatelessWidget {
 
   List<Widget> _comentariosFicticios(Color color) {
     final comentarios = [
-      {'usuario': 'Akira_Fan', 'nota': 5.0, 'texto': 'Una obra maestra absoluta. Cada capítulo te deja con ganas de más.'},
-      {'usuario': 'MangaLover92', 'nota': 4.5, 'texto': 'El arte es increíble y la historia engancha desde el primer momento.'},
-      {'usuario': 'OtakuPro', 'nota': 4.0, 'texto': 'Muy buena historia aunque algunos arcos son algo lentos.'},
+      {
+        'usuario': 'Akira_Fan',
+        'nota': 5.0,
+        'texto':
+            'Una obra maestra absoluta. Cada capítulo te deja con ganas de más.',
+      },
+      {
+        'usuario': 'MangaLover92',
+        'nota': 4.5,
+        'texto':
+            'El arte es increíble y la historia engancha desde el primer momento.',
+      },
+      {
+        'usuario': 'OtakuPro',
+        'nota': 4.0,
+        'texto': 'Muy buena historia aunque algunos arcos son algo lentos.',
+      },
     ];
 
-    return comentarios.map((c) => Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Coloresapp.colorBlanco,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Coloresapp.colorSombraCard, blurRadius: 8),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: color.withOpacity(0.15),
-                child: TextoTitulo(
-                  contingutText: (c['usuario'] as String)[0].toUpperCase(),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                  colorText: color,
+    return comentarios
+        .map(
+          (c) => Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Coloresapp.colorBlanco,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(color: Coloresapp.colorSombraCard, blurRadius: 8),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: color.withOpacity(0.15),
+                      child: TextoTitulo(
+                        contingutText: (c['usuario'] as String)[0]
+                            .toUpperCase(),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        colorText: color,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextoTitulo(
+                        contingutText: c['usuario'] as String,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Row(
+                      children: List.generate(
+                        5,
+                        (i) => Icon(
+                          i < (c['nota'] as double).round()
+                              ? Icons.star_rounded
+                              : Icons.star_outline_rounded,
+                          size: 12,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextoTitulo(
-                  contingutText: c['usuario'] as String,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                const SizedBox(height: 8),
+                TextoNormal(
+                  contingutText: c['texto'] as String,
+                  fontSize: 12,
+                  colorText: Coloresapp.colorTextoFlojo,
+                  height: 1.5,
                 ),
-              ),
-              Row(
-                children: List.generate(5, (i) => Icon(
-                  i < (c['nota'] as double).round()
-                      ? Icons.star_rounded
-                      : Icons.star_outline_rounded,
-                  size: 12,
-                  color: color,
-                )),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          TextoNormal(
-            contingutText: c['texto'] as String,
-            fontSize: 12,
-            colorText: Coloresapp.colorTextoFlojo,
-            height: 1.5,
-          ),
-        ],
-      ),
-    )).toList();
+        )
+        .toList();
   }
 }
 
