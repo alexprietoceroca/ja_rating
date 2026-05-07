@@ -2,10 +2,12 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
+import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../coloresapp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
 import 'package:ja_rating/Paginas/pagina_login.dart';
@@ -25,6 +27,13 @@ class _TabPerfilState extends State<TabPerfil>
     (_) => _Petala(),
   ); // 30 pétalos
 
+class _TabPerfilState extends State<TabPerfil>
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _posY;
+  late Animation<double> _posX;
+  late Animation<double> _rotacion;
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -39,6 +48,12 @@ class _TabPerfilState extends State<TabPerfil>
   String _tierLists = '0';
   String _miembroDesde = '';
 
+  // Estadísticas
+  String _animesCalificados = '0';
+  String _comentarios = '0';
+  String _tierLists = '0';
+  String _miembroDesde = '';
+
   @override
   void initState() {
     super.initState();
@@ -47,8 +62,31 @@ class _TabPerfilState extends State<TabPerfil>
       vsync: this,
       duration: const Duration(seconds: 8),
     )..repeat(); // Animación continua para todos los pétalos
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
+    )..repeat(reverse: false);
+
+    _posY = Tween<double>(
+      begin: -0.1,
+      end: 1.1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
+
+    _posX = Tween<double>(begin: 0.2, end: 0.8).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    );
+
+    _rotacion = Tween<double>(
+      begin: 0,
+      end: 2 * pi,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
   @override
   void dispose() {
     _controller.dispose();
@@ -59,14 +97,24 @@ class _TabPerfilState extends State<TabPerfil>
   bool get wantKeepAlive => true;
 
   Future<void> _cargarDatosUsuario() async {
+    setState(() {
+      _cargandoDatos = true;
+    });
+
+  @override
+  bool get wantKeepAlive => true;
+
+  Future<void> _cargarDatosUsuario() async {
     setState(() => _cargandoDatos = true);
     try {
       _usuarioActual = _auth.currentUser;
+
       if (_usuarioActual != null) {
         final docRef = _firestore
             .collection('usuarios')
             .doc(_usuarioActual!.uid);
         final doc = await docRef.get();
+
         if (doc.exists) {
           final data = doc.data();
           _nombreUsuario =
@@ -74,8 +122,19 @@ class _TabPerfilState extends State<TabPerfil>
               _usuarioActual?.displayName ??
               _usuarioActual?.email?.split('@')[0] ??
               'Usuario';
+          _nombreUsuario = data?['nombreUsuario'] ??
+              _usuarioActual?.displayName ??
+              _usuarioActual?.email?.split('@')[0] ??
+              'Usuario';
           _fotoPerfilUrl = data?['fotoPerfilUrl'];
           if (_fotoPerfilUrl == '') _fotoPerfilUrl = null;
+          _animesCalificados = (data?['animesCalificados'] ?? 0).toString();
+          _comentarios = (data?['comentarios'] ?? 0).toString();
+          _tierLists = (data?['tierLists'] ?? 0).toString();
+          _miembroDesde = _formatearFecha(data?['fechaRegistro']);
+          if (_fotoPerfilUrl == '') {
+            _fotoPerfilUrl = null;
+          }
           _animesCalificados = (data?['animesCalificados'] ?? 0).toString();
           _comentarios = (data?['comentarios'] ?? 0).toString();
           _tierLists = (data?['tierLists'] ?? 0).toString();
@@ -86,6 +145,11 @@ class _TabPerfilState extends State<TabPerfil>
               _usuarioActual?.email?.split('@')[0] ??
               'Usuario';
           _miembroDesde = _formatearFecha(DateTime.now().toIso8601String());
+          _nombreUsuario = _usuarioActual?.displayName ??
+              _usuarioActual?.email?.split('@')[0] ??
+              'Usuario';
+          _miembroDesde = _formatearFecha(DateTime.now().toIso8601String());
+          
           await docRef.set({
             'uid': _usuarioActual!.uid,
             'email': _usuarioActual!.email,
@@ -165,6 +229,14 @@ class _TabPerfilState extends State<TabPerfil>
       maxWidth: 1024,
     );
     if (pickedFile != null) await _subirImagen(File(pickedFile.path));
+  String _formatearFecha(String? fechaIso) {
+    if (fechaIso == null || fechaIso.isEmpty) return 'Miembro reciente';
+    try {
+      final fecha = DateTime.parse(fechaIso);
+      return 'Miembro desde ${fecha.year}';
+    } catch (e) {
+      return 'Miembro reciente';
+    }
   }
 
   Future<void> _subirImagen(File imagen) async {
@@ -173,6 +245,7 @@ class _TabPerfilState extends State<TabPerfil>
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
+  Future<void> _seleccionarImagenWeb() async {
     try {
       final user = _auth.currentUser;
       if (user == null) throw Exception('No hay usuario autenticado');
@@ -197,30 +270,151 @@ class _TabPerfilState extends State<TabPerfil>
           ),
         );
       }
+      FilePickerResult? result = await FilePicker.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
+      
+      if (result != null && result.files.first.bytes != null) {
+        final bytes = result.files.first.bytes!;
+        final nombre = result.files.first.name;
+        await _subirImagenWeb(bytes, nombre);
+      }
     } catch (e) {
-      print('Error al subir imagen: $e');
+      print('Error al seleccionar imagen: $e');
       if (mounted) {
-        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error al seleccionar imagen: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
   }
 
+ Future<void> _subirImagenWeb(List<int> bytes, String nombre) async {
+  // Mostrar loading
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => const Center(
+      child: CircularProgressIndicator(),
+    ),
+  );
+
+  try {
+    final user = _auth.currentUser;
+    
+    if (user == null) {
+      throw Exception('No hay usuario autenticado');
+    }
+
+    // Convertir List<int> a Uint8List
+    final Uint8List uint8List = Uint8List.fromList(bytes);
+
+    // Subir a Storage (usando putData para web)
+    final ref = _storage.ref().child('perfiles/${user.uid}/foto_perfil.jpg');
+    await ref.putData(uint8List, SettableMetadata(contentType: 'image/jpeg'));
+    final url = await ref.getDownloadURL();
+    
+    // Guardar URL en Firestore
+    await _firestore.collection('usuarios').doc(user.uid).update({
+      'fotoPerfilUrl': url,
+    });
+    
+    // Actualizar Auth
+    await user.updatePhotoURL(url);
+    await user.reload();
+    
+    if (mounted) {
+      setState(() {
+        _fotoPerfilUrl = url;
+        _usuarioActual = _auth.currentUser;
+      });
+      
+      Navigator.pop(context); // Cerrar diálogo de loading
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Foto de perfil actualizada'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  } catch (e) {
+    print('Error al subir imagen: $e');
+    if (mounted) {
+      Navigator.pop(context); // Cerrar diálogo de loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
+
+ void _mostrarOpcionesFoto() {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (BuildContext context) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.photo_library, color: Colors.blue),
+            title: const Text('Subir foto'),
+            onTap: () {
+              Navigator.pop(context);
+              _seleccionarImagenWeb();
+            },
+          ),
+          if (_fotoPerfilUrl != null && _fotoPerfilUrl!.isNotEmpty)
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Eliminar foto'),
+              onTap: () async {
+                Navigator.pop(context);
+                await _eliminarFoto();
+              },
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
   Future<void> _eliminarFoto() async {
     try {
       final user = _auth.currentUser;
       if (user == null) throw Exception('No hay usuario autenticado');
+      
+      if (user == null) {
+        throw Exception('No hay usuario autenticado');
+      }
+
       try {
         await _storage
             .ref()
             .child('perfiles/${user.uid}/foto_perfil.jpg')
             .delete();
       } catch (e) {}
+        final ref = _storage.ref().child('perfiles/${user.uid}/foto_perfil.jpg');
+        await ref.delete();
+      } catch (e) {
+        print('No se pudo eliminar de Storage: $e');
+      }
+      
       await _firestore.collection('usuarios').doc(user.uid).update({
         'fotoPerfilUrl': '',
       });
+      
       await user.updatePhotoURL(null);
       await user.reload();
       if (mounted) {
@@ -297,6 +491,11 @@ class _TabPerfilState extends State<TabPerfil>
     try {
       final user = _auth.currentUser;
       if (user == null) throw Exception('No hay usuario autenticado');
+      
+      if (user == null) {
+        throw Exception('No hay usuario autenticado');
+      }
+
       final querySnapshot = await _firestore
           .collection('usuarios')
           .where('nombreUsuario', isEqualTo: nuevoNombre)
@@ -315,9 +514,11 @@ class _TabPerfilState extends State<TabPerfil>
         }
         return;
       }
+
       await _firestore.collection('usuarios').doc(user.uid).update({
         'nombreUsuario': nuevoNombre,
       });
+
       await user.updateDisplayName(nuevoNombre);
       await user.reload();
       if (mounted) {
@@ -366,12 +567,20 @@ class _TabPerfilState extends State<TabPerfil>
     if (confirm == true) {
       await _auth.signOut();
       if (mounted) Navigator.pushReplacementNamed(context, '/login');
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const PaginaLogin()),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    super.build(context);
+
     if (_cargandoDatos) {
       return const Center(
         child: Column(
@@ -384,6 +593,7 @@ class _TabPerfilState extends State<TabPerfil>
         ),
       );
     }
+
     if (_usuarioActual == null) {
       return const Center(
         child: Column(
@@ -402,9 +612,9 @@ class _TabPerfilState extends State<TabPerfil>
 
     return Stack(
       children: [
-        // Fondo base
         Container(color: Coloresapp.colorFondo),
         // Pétalos animados (múltiples)
+        
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) => CustomPaint(
@@ -413,6 +623,7 @@ class _TabPerfilState extends State<TabPerfil>
           ),
         ),
         // Contenido principal
+        
         SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.all(padding),
@@ -421,6 +632,8 @@ class _TabPerfilState extends State<TabPerfil>
               children: [
                 const SizedBox(height: 20),
                 // Cabecera
+                const SizedBox(height: 20),
+                
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
                   child: Row(
@@ -454,6 +667,8 @@ class _TabPerfilState extends State<TabPerfil>
                 ),
                 // Avatar
                 Stack(
+                
+                Stack(
                   children: [
                     CircleAvatar(
                       radius: 60,
@@ -468,6 +683,12 @@ class _TabPerfilState extends State<TabPerfil>
                               color: Colors.white,
                               size: 60,
                             )
+                          : null,
+                      backgroundImage: _fotoPerfilUrl != null && _fotoPerfilUrl!.isNotEmpty
+                          ? NetworkImage(_fotoPerfilUrl!)
+                          : null,
+                      child: (_fotoPerfilUrl == null || _fotoPerfilUrl!.isEmpty)
+                          ? const Icon(Icons.person_rounded, color: Colors.white, size: 60)
                           : null,
                     ),
                     Positioned(
@@ -494,6 +715,9 @@ class _TabPerfilState extends State<TabPerfil>
                 ),
                 const SizedBox(height: 16),
                 // Nombre
+                
+                const SizedBox(height: 16),
+                
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -530,6 +754,47 @@ class _TabPerfilState extends State<TabPerfil>
                 Row(
                   children: [
                     _buildTarjetaEstadistica(_animesCalificados, 'Calificados'),
+                    Text(
+                      _nombreUsuario,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: _editarNombre,
+                      icon: const Icon(Icons.edit, size: 20),
+                      color: Colors.grey,
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 8),
+                
+                Text(
+                  _usuarioActual?.email ?? 'Sin email',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+                
+                const SizedBox(height: 8),
+                
+                Text(
+                  _miembroDesde,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Coloresapp.colorTextoFlojo,
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
+                
+                Row(
+                  children: [
+                    _buildTarjetaEstadistica(_animesCalificados, 'Calificados'),
                     const SizedBox(width: 12),
                     _buildTarjetaEstadistica(_comentarios, 'Comentarios'),
                     const SizedBox(width: 12),
@@ -538,27 +803,55 @@ class _TabPerfilState extends State<TabPerfil>
                 ),
                 const SizedBox(height: 40),
                 // Menú
+                
+                const SizedBox(height: 40),
+                
                 _ItemMenuPerfil(
                   icono: Icons.star_rounded,
                   etiqueta: 'Mis calificaciones',
                   sub: '$_animesCalificados títulos calificados',
+                  sub: '$_animesCalificados títulos calificados',
+                  onTap: () {},
                 ),
                 _ItemMenuPerfil(
                   icono: Icons.chat_bubble_outline_rounded,
                   etiqueta: 'Mis comentarios',
                   sub: '$_comentarios comentarios',
+                  sub: '$_comentarios comentarios',
+                  onTap: () {},
                 ),
                 _ItemMenuPerfil(
                   icono: Icons.emoji_events_rounded,
                   etiqueta: 'Mis Tier Lists',
                   sub: '$_tierLists listas creadas',
+                  sub: '$_tierLists listas creadas',
+                  onTap: () {},
                 ),
                 _ItemMenuPerfil(
                   icono: Icons.forum_rounded,
                   etiqueta: 'Foros visitados',
                   sub: 'Comunidad activa',
+                  sub: 'Comunidad activa',
+                  onTap: () {},
                 ),
                 const SizedBox(height: 30),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _cerrarSesion,
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Cerrar sesión'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                
+                const SizedBox(height: 30),
+                
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -576,8 +869,11 @@ class _TabPerfilState extends State<TabPerfil>
                   ),
                 ),
                 const SizedBox(height: 20),
+                
+                const SizedBox(height: 20),
               ],
             ),
+          ),
           ),
         ),
       ],
@@ -616,6 +912,138 @@ class _TabPerfilState extends State<TabPerfil>
                 fontSize: 11,
                 color: Coloresapp.colorTextoFlojo,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+  Widget _buildTarjetaEstadistica(String valor, String etiqueta) {
+    return Expanded(
+class _PetalaPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Coloresapp.colorRosaClaro.withOpacity(0.8)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    path.moveTo(size.width / 2, 0);
+    path.cubicTo(
+      size.width * 0.7,
+      size.height * 0.3,
+      size.width,
+      size.height * 0.7,
+      size.width / 2,
+      size.height,
+    );
+    path.cubicTo(
+      0,
+      size.height * 0.7,
+      size.width * 0.3,
+      size.height * 0.3,
+      size.width / 2,
+      0,
+    );
+    path.close();
+
+    canvas.drawPath(path, paint);
+
+    final paintLine = Paint()
+      ..color = Colors.white.withOpacity(0.5)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    final centerPath = Path();
+    centerPath.moveTo(size.width / 2, 0);
+    centerPath.cubicTo(
+      size.width / 2,
+      size.height * 0.4,
+      size.width / 2,
+      size.height * 0.7,
+      size.width / 2,
+      size.height,
+    );
+    canvas.drawPath(centerPath, paintLine);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _ItemMenuPerfil extends StatelessWidget {
+  final IconData icono;
+  final String etiqueta;
+  final String sub;
+  final VoidCallback? onTap;
+
+  const _ItemMenuPerfil({
+    required this.icono,
+    required this.etiqueta,
+    required this.sub,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          color: Coloresapp.colorBlanco,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+          ],
+        ),
+        child: Row(
+          children: [
+            Text(
+              valor,
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                color: Coloresapp.colorPrimario,
+              ),
+            Icon(icono, color: Coloresapp.colorPrimario, size: 22),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    etiqueta,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: Coloresapp.colorCasiNegro,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    sub,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Coloresapp.colorTextoFlojo,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              etiqueta,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Coloresapp.colorTextoFlojo,
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Coloresapp.colorTextoFlojo,
             ),
           ],
         ),
