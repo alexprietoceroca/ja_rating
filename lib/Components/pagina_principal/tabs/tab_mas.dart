@@ -1,14 +1,13 @@
-// tab_mas.dart (solo fragmento de lo que cambia, pero te doy el archivo completo)
-
+// tab_mas.dart
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:ja_rating/Components/pagina_principal/tabs/tab_rating.dart';
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
 import 'package:ja_rating/Paginas/pagina_tierlist.dart';
-import 'package:ja_rating/Paginas/pagina_foro.dart'; // Añadir esta importación
+import 'package:ja_rating/Paginas/pagina_foro.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ja_rating/Paginas/pagina_login.dart';
-import 'package:ja_rating/Components/pagina_principal/productos_cartas.dart';
 
 class TabMas extends StatefulWidget {
   final List<Map<String, dynamic>> todosLosProductos;
@@ -18,8 +17,7 @@ class TabMas extends StatefulWidget {
   State<TabMas> createState() => _TabMasState();
 }
 
-class _TabMasState extends State<TabMas>
-    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
+class _TabMasState extends State<TabMas> with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   late AnimationController _dragController;
 
   @override
@@ -47,26 +45,10 @@ class _TabMasState extends State<TabMas>
     final double padding = anchoPantalla > 800 ? 40 : 20;
 
     final List<Map<String, dynamic>> foros = [
-      {
-        'titulo': '¿Cuál es el mejor arco de One Piece?',
-        'respuestas': 42,
-        'destacado': true,
-      },
-      {
-        'titulo': 'Teorías sobre Jujutsu Kaisen final',
-        'respuestas': 87,
-        'destacado': true,
-      },
-      {
-        'titulo': 'Top manhwas para empezar en 2025',
-        'respuestas': 23,
-        'destacado': false,
-      },
-      {
-        'titulo': 'Dandadan vs Chainsaw Man',
-        'respuestas': 61,
-        'destacado': false,
-      },
+      {'titulo': '¿Cuál es el mejor arco de One Piece?', 'respuestas': 42, 'destacado': true},
+      {'titulo': 'Teorías sobre Jujutsu Kaisen final', 'respuestas': 87, 'destacado': true},
+      {'titulo': 'Top manhwas para empezar en 2026', 'respuestas': 23, 'destacado': false},
+      {'titulo': 'Dandadan vs Chainsaw Man', 'respuestas': 61, 'destacado': false},
     ];
 
     return Stack(
@@ -95,10 +77,7 @@ class _TabMasState extends State<TabMas>
                         'assets/imagenes/logo.png',
                         width: 40,
                         height: 40,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.image,
-                          color: Coloresapp.colorTexto,
-                        ),
+                        errorBuilder: (_, __, ___) => const Icon(Icons.image, color: Coloresapp.colorTexto),
                       ),
                       const Spacer(),
                       TextoNormal(
@@ -109,36 +88,29 @@ class _TabMasState extends State<TabMas>
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(
-                          Icons.logout,
-                          color: Coloresapp.colorTexto,
-                        ),
+                        icon: const Icon(Icons.logout, color: Coloresapp.colorTexto),
                         onPressed: () async {
                           await FirebaseAuth.instance.signOut();
-                          if (mounted)
+                          if (mounted) {
                             Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => const PaginaLogin(),
-                              ),
+                              MaterialPageRoute(builder: (context) => const PaginaLogin()),
                             );
+                          }
                         },
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 10),
+                // Aquí está la fila con las 3 tarjetas: Tier Lists, Foros y Rating
                 Row(
                   children: [
                     Expanded(
                       child: GestureDetector(
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => PaginaTierlist(
-                              todosLosProductos: widget.todosLosProductos,
-                            ),
-                          ),
+                          MaterialPageRoute(builder: (_) => PaginaTierlist(todosLosProductos: widget.todosLosProductos)),
                         ),
                         child: _CartaFuncionalidad(
                           icono: Icons.emoji_events_rounded,
@@ -151,13 +123,10 @@ class _TabMasState extends State<TabMas>
                     const SizedBox(width: 14),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          // REDIRIGIR A LA PÁGINA DE FOROS
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const PaginaForo()),
-                          );
-                        },
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const PaginaForo()),
+                        ),
                         child: _CartaFuncionalidad(
                           icono: Icons.forum_rounded,
                           etiqueta: 'Foros',
@@ -166,30 +135,40 @@ class _TabMasState extends State<TabMas>
                         ),
                       ),
                     ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => TabRating(todosLosProductos: widget.todosLosProductos)),
+                        ),
+                        child: _CartaFuncionalidad(
+                          icono: Icons.star_rate_rounded,
+                          etiqueta: 'Rating',
+                          descripcion: 'Valora tus animes favoritos',
+                          color: Coloresapp.colorVerde,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
-                Text(
+                const Text(
                   'Foros populares',
                   style: TextStyle(
                     fontFamily: 'HoshikoSatsuki',
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    foreground: Paint()
-                      ..blendMode = BlendMode.difference
-                      ..color = Colors.white,
+                    color: Coloresapp.colorCasiNegro,
                   ),
                 ),
                 const SizedBox(height: 12),
                 ...foros.map(
                   (f) => GestureDetector(
-                    onTap: () {
-                      // También puedes redirigir al hacer clic en un foro popular
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const PaginaForo()),
-                      );
-                    },
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PaginaForo()),
+                    ),
                     child: _ItemForo(
                       titulo: f['titulo'] as String,
                       respuestas: f['respuestas'] as int,
@@ -206,6 +185,7 @@ class _TabMasState extends State<TabMas>
   }
 }
 
+// ========== EL RESTO DE LOS WIDGETS AUXILIARES (Dragon, CartaFuncionalidad, ItemForo) ==========
 class _DragonBlancoNegroPainter extends CustomPainter {
   final double t;
   _DragonBlancoNegroPainter(this.t);
@@ -221,10 +201,11 @@ class _DragonBlancoNegroPainter extends CustomPainter {
     final path = Path();
     for (double x = inicioX; x <= inicioX + longitud; x += 10) {
       final y = centerY + sin(x * 0.04 + fase) * amplitud;
-      if (x == inicioX)
+      if (x == inicioX) {
         path.moveTo(x, y);
-      else
+      } else {
         path.lineTo(x, y);
+      }
     }
     canvas.drawPath(
       path,
@@ -244,12 +225,7 @@ class _DragonBlancoNegroPainter extends CustomPainter {
     canvas.drawPath(pathCuerno, paintNegro);
     final pathBigote = Path();
     pathBigote.moveTo(cabezaX - 6, cabezaY + 6);
-    pathBigote.quadraticBezierTo(
-      cabezaX - 18,
-      cabezaY + 16,
-      cabezaX - 28,
-      cabezaY + 10,
-    );
+    pathBigote.quadraticBezierTo(cabezaX - 18, cabezaY + 16, cabezaX - 28, cabezaY + 10);
     canvas.drawPath(pathBigote, paintNegro);
     final colaX = inicioX;
     final colaY = centerY + sin(colaX * 0.04 + fase) * amplitud;
@@ -259,11 +235,7 @@ class _DragonBlancoNegroPainter extends CustomPainter {
     canvas.drawPath(pathCola, paintNegro);
     for (double x = inicioX + 20; x <= inicioX + longitud - 20; x += 30) {
       final yEsc = centerY + sin(x * 0.04 + fase) * amplitud - 6;
-      canvas.drawCircle(
-        Offset(x, yEsc),
-        3,
-        Paint()..color = Coloresapp.colorGris600,
-      );
+      canvas.drawCircle(Offset(x, yEsc), 3, Paint()..color = Coloresapp.colorGris600);
     }
   }
 
@@ -289,9 +261,7 @@ class _CartaFuncionalidad extends StatelessWidget {
       decoration: BoxDecoration(
         color: Coloresapp.colorBlanco,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 16),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 16)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,30 +269,13 @@ class _CartaFuncionalidad extends StatelessWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(14),
-            ),
+            decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(14)),
             child: Icon(icono, color: color, size: 26),
           ),
           const SizedBox(height: 12),
-          Text(
-            etiqueta,
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 15,
-              color: Coloresapp.colorCasiNegro,
-            ),
-          ),
+          Text(etiqueta, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Coloresapp.colorCasiNegro)),
           const SizedBox(height: 4),
-          Text(
-            descripcion,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Coloresapp.colorTextoFlojo,
-              height: 1.4,
-            ),
-          ),
+          Text(descripcion, style: const TextStyle(fontSize: 12, color: Coloresapp.colorTextoFlojo, height: 1.4)),
         ],
       ),
     );
@@ -346,9 +299,7 @@ class _ItemForo extends StatelessWidget {
       decoration: BoxDecoration(
         color: Coloresapp.colorBlanco,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
       ),
       child: Row(
         children: [
@@ -359,58 +310,24 @@ class _ItemForo extends StatelessWidget {
                 if (destacado)
                   Container(
                     margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Coloresapp.colorPrimario.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(color: Coloresapp.colorPrimario.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.local_fire_department_rounded,
-                          size: 12,
-                          color: Coloresapp.colorPrimario,
-                        ),
+                        Icon(Icons.local_fire_department_rounded, size: 12, color: Coloresapp.colorPrimario),
                         SizedBox(width: 3),
-                        Text(
-                          'HOT',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: Coloresapp.colorPrimario,
-                          ),
-                        ),
+                        Text('HOT', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Coloresapp.colorPrimario)),
                       ],
                     ),
                   ),
-                Text(
-                  titulo,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: Coloresapp.colorCasiNegro,
-                    height: 1.3,
-                  ),
-                ),
+                Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Coloresapp.colorCasiNegro, height: 1.3)),
                 const SizedBox(height: 4),
-                Text(
-                  '$respuestas respuestas',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Coloresapp.colorTextoFlojo,
-                  ),
-                ),
+                Text('$respuestas respuestas', style: const TextStyle(fontSize: 11, color: Coloresapp.colorTextoFlojo)),
               ],
             ),
           ),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: Coloresapp.colorTextoFlojo,
-          ),
+          const Icon(Icons.chevron_right_rounded, color: Coloresapp.colorTextoFlojo),
         ],
       ),
     );

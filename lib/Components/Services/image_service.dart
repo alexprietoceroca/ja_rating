@@ -1,5 +1,4 @@
 // image_service.dart
-import 'package:flutter/foundation.dart';
 
 class ImageService {
   // Mapa de IDs de MAL a URLs de imágenes personalizadas

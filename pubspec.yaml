@@ -1,4 +1,4 @@
-name: ja_rating
+﻿name: ja_rating
 description: "A new Flutter project."
 publish_to: 'none'
 version: 0.1.0
@@ -9,27 +9,24 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Firebase
   firebase_core: ^4.4.0
   firebase_auth: ^6.1.4
   cloud_firestore: ^6.1.2
   firebase_storage: ^13.0.6
-  
+
   # Imágenes
   image_picker: 1.2.0
   cached_network_image: ^3.4.1  # ✅ ya está
-  
+
   # HTTP y utilidades
   http: ^1.6.0  # ← solo una vez (versión más reciente)
   google_fonts: ^8.0.2
   flutter_dotenv: ^5.1.0
-
-  cached_network_image: ^3.4.1
   shared_preferences: ^2.5.5
   file_picker: ^11.0.2
   intl: ^0.20.2
-  
 
 dev_dependencies:
   flutter_test:
@@ -38,12 +35,12 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  
+
   fonts:
     - family: HoshikoSatsuki
       fonts:
         - asset: lib/fonts/Hoshiko Satsuki.ttf
-  
+
   assets:
     - assets/imagenes/logo.png
     - assets/imagenes/brush.png

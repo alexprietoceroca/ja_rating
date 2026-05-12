@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ja_rating/coloresApp.dart';
 import 'package:ja_rating/Components/pagina_principal/widgets/cabecera_hero.dart';
 import 'package:ja_rating/Components/pagina_principal/widgets/seccion_con_scroll.dart';
 

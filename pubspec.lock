@@ -372,11 +372,9 @@ packages:
     dependency: "direct main"
     description:
       name: image_picker
-      sha256: "91c025426c2881c551100bce834e201c835a170151545f58d17da5180ca7d9ac"
       sha256: "736eb56a911cf24d1859315ad09ddec0b66104bc41a7f8c5b96b4e2620cf5041"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.2"
     version: "1.2.0"
   image_picker_android:
     dependency: transitive
@@ -434,7 +432,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.2"
-  jni:
   intl:
     dependency: "direct main"
     description:
@@ -684,7 +681,6 @@ packages:
     source: hosted
     version: "2.4.23"
   shared_preferences_foundation:
-  pub_semver:
     dependency: transitive
     description:
       name: shared_preferences_foundation
@@ -693,14 +689,10 @@ packages:
     source: hosted
     version: "2.5.6"
   shared_preferences_linux:
-    version: "2.2.0"
-  record_use:
     dependency: transitive
     description:
       name: shared_preferences_linux
       sha256: "580abfd40f415611503cae30adf626e6656dfb2f0cee8f465ece7b6defb40f2f"
-      name: record_use
-      sha256: "2551bd8eecfe95d14ae75f6021ad0248be5c27f138c2ec12fcb52b500b3ba1ed"
       url: "https://pub.dev"
     source: hosted
     version: "2.4.1"
@@ -721,8 +713,6 @@ packages:
     source: hosted
     version: "2.4.3"
   shared_preferences_windows:
-    version: "0.6.0"
-  rxdart:
     dependency: transitive
     description:
       name: shared_preferences_windows
@@ -763,10 +753,10 @@ packages:
     dependency: transitive
     description:
       name: sqflite_common
-      sha256: "5e8377564d95166761a968ed96104e0569b6b6cc611faac92a36ab8a169112c3"
+      sha256: f8a08a13fb8f0f8c590df89d745000bed44a673ed94bac846739e1a016875c21
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.6+1"
+    version: "2.5.7"
   sqflite_darwin:
     dependency: transitive
     description:

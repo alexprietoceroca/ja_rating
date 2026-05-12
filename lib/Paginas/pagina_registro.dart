@@ -14,18 +14,20 @@ class PaginaRegistro extends StatefulWidget {
 }
 
 class _PaginaRegistroState extends State<PaginaRegistro> {
-  final TextEditingController _nombreUsuarioController = TextEditingController();
+  final TextEditingController _nombreUsuarioController =
+      TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
   final FocusNode _nombreUsuarioFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final FocusNode _confirmPasswordFocus = FocusNode();
-  
+
   final _formKey = GlobalKey<FormState>();
-  
+
   bool _isHovering = false;
   bool _isLoading = false;
 
@@ -114,7 +116,9 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
 
       try {
         // Verificar si el nombre de usuario ya existe
-        final existe = await _nombreUsuarioExiste(_nombreUsuarioController.text.trim());
+        final existe = await _nombreUsuarioExiste(
+          _nombreUsuarioController.text.trim(),
+        );
         if (existe) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -131,27 +135,33 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
         }
 
         // Crear usuario en Firebase Auth
-        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
+        UserCredential userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+            );
 
         // Actualizar el displayName con el nombre de usuario
-        await userCredential.user?.updateDisplayName(_nombreUsuarioController.text.trim());
+        await userCredential.user?.updateDisplayName(
+          _nombreUsuarioController.text.trim(),
+        );
         await userCredential.user?.reload();
 
         // Guardar en Firestore
         final firestore = FirebaseFirestore.instance;
-        await firestore.collection('usuarios').doc(userCredential.user!.uid).set({
-          'uid': userCredential.user!.uid,
-          'email': userCredential.user!.email,
-          'nombreUsuario': _nombreUsuarioController.text.trim(),
-          'fotoPerfilUrl': '',
-          'fechaRegistro': DateTime.now().toIso8601String(),
-          'animesCalificados': 0,
-          'comentarios': 0,
-          'tierLists': 0,
-        });
+        await firestore
+            .collection('usuarios')
+            .doc(userCredential.user!.uid)
+            .set({
+              'uid': userCredential.user!.uid,
+              'email': userCredential.user!.email,
+              'nombreUsuario': _nombreUsuarioController.text.trim(),
+              'fotoPerfilUrl': '',
+              'fechaRegistro': DateTime.now().toIso8601String(),
+              'animesCalificados': 0,
+              'comentarios': 0,
+              'tierLists': 0,
+            });
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -168,7 +178,7 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
               duration: const Duration(seconds: 2),
             ),
           );
-          
+
           // Redirigir a login después de 2 segundos
           Future.delayed(const Duration(seconds: 2), () {
             if (mounted) {
@@ -190,7 +200,7 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
         } else {
           mensajeError = 'Error al registrar: ${e.message}';
         }
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -238,10 +248,8 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
       backgroundColor: Coloresapp.colorFonsInici,
       body: Stack(
         children: [
-          Container(
-            color: Coloresapp.colorFonsInici,
-          ),
-          
+          Container(color: Coloresapp.colorFonsInici),
+
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -253,7 +261,7 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 50),
-                      
+
                       // Widget animado de bienvenida
                       TextoIdiomas(
                         duracionAnimacion: const Duration(milliseconds: 800),
@@ -264,16 +272,17 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                           fontWeight: FontWeight.bold,
                           shadows: [
                             Shadow(
-                              color: Coloresapp.colorPrimarioAccentuado.withOpacity(0.4),
+                              color: Coloresapp.colorPrimarioAccentuado
+                                  .withOpacity(0.4),
                               blurRadius: 10,
                               offset: const Offset(3, 3),
                             ),
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: 30),
-                      
+
                       // Campo de nombre de usuario (cambiado)
                       TextFieldAutentificacion(
                         controllerText: _nombreUsuarioController,
@@ -284,9 +293,9 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                         valorInicialOcultarEyeToggle: true,
                         enabled: !_isLoading,
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Campo de email
                       TextFieldAutentificacion(
                         controllerText: _emailController,
@@ -297,9 +306,9 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                         valorInicialOcultarEyeToggle: true,
                         enabled: !_isLoading,
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Campo de contraseña
                       TextFieldAutentificacion(
                         controllerText: _passwordController,
@@ -310,9 +319,9 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                         valorInicialOcultarEyeToggle: true,
                         enabled: !_isLoading,
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Campo de confirmar contraseña
                       TextFieldAutentificacion(
                         controllerText: _confirmPasswordController,
@@ -323,9 +332,9 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                         valorInicialOcultarEyeToggle: true,
                         enabled: !_isLoading,
                       ),
-                      
+
                       const SizedBox(height: 15),
-                      
+
                       // Requisitos de contraseña
                       Container(
                         padding: const EdgeInsets.all(12),
@@ -333,7 +342,8 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                           color: Coloresapp.colorPrimario.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: Coloresapp.colorPrimarioAccentuado.withOpacity(0.3),
+                            color: Coloresapp.colorPrimarioAccentuado
+                                .withOpacity(0.3),
                           ),
                         ),
                         child: Column(
@@ -358,13 +368,17 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: 30),
-                      
+
                       // Botón de registro
                       MouseRegion(
-                        onEnter: _isLoading ? null : (_) => setState(() => _isHovering = true),
-                        onExit: _isLoading ? null : (_) => setState(() => _isHovering = false),
+                        onEnter: _isLoading
+                            ? null
+                            : (_) => setState(() => _isHovering = true),
+                        onExit: _isLoading
+                            ? null
+                            : (_) => setState(() => _isHovering = false),
                         child: GestureDetector(
                           onTap: _isLoading ? null : _handleRegister,
                           child: AnimatedContainer(
@@ -372,26 +386,29 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                             width: double.infinity,
                             height: 55,
                             decoration: BoxDecoration(
-                              color: _isLoading 
+                              color: _isLoading
                                   ? Coloresapp.colorNaranja.withOpacity(0.5)
-                                  : (_isHovering 
-                                      ? Coloresapp.colorNaranja.withOpacity(0.9)
-                                      : Coloresapp.colorNaranja),
+                                  : (_isHovering
+                                        ? Coloresapp.colorNaranja.withOpacity(
+                                            0.9,
+                                          )
+                                        : Coloresapp.colorNaranja),
                               borderRadius: BorderRadius.circular(30),
                               boxShadow: _isHovering && !_isLoading
                                   ? [
                                       BoxShadow(
-                                        color: Coloresapp.colorNaranja.withOpacity(0.5),
+                                        color: Coloresapp.colorNaranja
+                                            .withOpacity(0.5),
                                         blurRadius: 15,
                                         offset: const Offset(0, 5),
-                                      )
+                                      ),
                                     ]
                                   : [
                                       BoxShadow(
                                         color: Colors.black26,
                                         blurRadius: 8,
                                         offset: const Offset(0, 3),
-                                      )
+                                      ),
                                     ],
                             ),
                             child: Center(
@@ -417,9 +434,9 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                           ),
                         ),
                       ),
-                      
+
                       const SizedBox(height: 30),
-                      
+
                       // Enlace para ir a login
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -427,28 +444,33 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                           Text(
                             '¿Ya tienes una cuenta? ',
                             style: TextStyle(
-                              color: Coloresapp.colorTextoFlojo,
+                              color: Coloresapp.colorTextoLigero,
                               fontSize: 16,
                             ),
                           ),
                           GestureDetector(
-                            onTap: _isLoading ? null : () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (context) => const PaginaLogin()),
-                              );
-                            },
+                            onTap: _isLoading
+                                ? null
+                                : () {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const PaginaLogin(),
+                                      ),
+                                    );
+                                  },
                             child: Text(
                               'Inicia sesión',
                               style: TextStyle(
-                                color: _isLoading 
-                                    ? Coloresapp.colorTextoFlojo 
+                                color: _isLoading
+                                    ? Coloresapp.colorTextoLigero
                                     : Coloresapp.colorPrimario,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
                                 decoration: TextDecoration.underline,
-                                decorationColor: _isLoading 
-                                    ? Coloresapp.colorTextoFlojo
+                                decorationColor: _isLoading
+                                    ? Coloresapp.colorTextoLigero
                                     : Coloresapp.colorPrimarioAccentuado,
                                 decorationThickness: 2,
                               ),
@@ -456,7 +478,7 @@ class _PaginaRegistroState extends State<PaginaRegistro> {
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 30),
                     ],
                   ),

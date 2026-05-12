@@ -1,6 +1,5 @@
 // pagina_producto.dart
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
 import 'package:ja_rating/Components/Login/texto_titulo.dart';

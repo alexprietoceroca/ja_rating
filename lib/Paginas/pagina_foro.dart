@@ -458,14 +458,14 @@ class _DialogNuevoForoState extends State<_DialogNuevoForo> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _categoria,
+                initialValue: _categoria,
                 decoration: const InputDecoration(labelText: 'Categoría', border: OutlineInputBorder()),
                 items: _categorias.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
                 onChanged: (value) => setState(() => _categoria = value!),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _tipo,
+                initialValue: _tipo,
                 decoration: const InputDecoration(labelText: 'Tipo', border: OutlineInputBorder()),
                 items: _tipos.map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo))).toList(),
                 onChanged: (value) => setState(() => _tipo = value!),
