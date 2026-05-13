@@ -1,4 +1,4 @@
-// tab_perfil.dart
+// lib/Components/pagina_principal/tabs/tab_perfil.dart
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -9,6 +9,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
 import 'package:ja_rating/Paginas/pagina_login.dart';
+import 'package:ja_rating/Components/pagina_perfil/mis_tierlists_page.dart';
+import 'package:ja_rating/Components/pagina_perfil/mis_comentarios_page.dart';
+import 'package:ja_rating/Components/pagina_perfil/foros_visitados_page.dart';
 
 class TabPerfil extends StatefulWidget {
   const TabPerfil({super.key});
@@ -30,16 +33,12 @@ class _TabPerfilState extends State<TabPerfil>
   String? _fotoPerfilUrl;
   String _nombreUsuario = '';
   bool _cargandoDatos = true;
-
-  String _animesCalificados = '0';
-  String _comentarios = '0';
-  String _tierLists = '0';
   String _miembroDesde = '';
 
   @override
   void initState() {
     super.initState();
-    _cargarDatosUsuario();
+    _cargarDatosBasicosUsuario();
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 8),
@@ -55,33 +54,31 @@ class _TabPerfilState extends State<TabPerfil>
   @override
   bool get wantKeepAlive => true;
 
-  Future<void> _cargarDatosUsuario() async {
+  Future<void> _cargarDatosBasicosUsuario() async {
     setState(() => _cargandoDatos = true);
     try {
       _usuarioActual = _auth.currentUser;
-
       if (_usuarioActual != null) {
-        final docRef = _firestore.collection('usuarios').doc(_usuarioActual!.uid);
+        final docRef = _firestore
+            .collection('usuarios')
+            .doc(_usuarioActual!.uid);
         final doc = await docRef.get();
-
         if (doc.exists) {
           final data = doc.data();
-          _nombreUsuario = data?['nombreUsuario'] ??
+          _nombreUsuario =
+              data?['nombreUsuario'] ??
               _usuarioActual?.displayName ??
               _usuarioActual?.email?.split('@')[0] ??
               'Usuario';
           _fotoPerfilUrl = data?['fotoPerfilUrl'];
           if (_fotoPerfilUrl == '') _fotoPerfilUrl = null;
-          _animesCalificados = (data?['animesCalificados'] ?? 0).toString();
-          _comentarios = (data?['comentarios'] ?? 0).toString();
-          _tierLists = (data?['tierLists'] ?? 0).toString();
           _miembroDesde = _formatearFecha(data?['fechaRegistro']);
         } else {
-          _nombreUsuario = _usuarioActual?.displayName ??
+          _nombreUsuario =
+              _usuarioActual?.displayName ??
               _usuarioActual?.email?.split('@')[0] ??
               'Usuario';
           _miembroDesde = _formatearFecha(DateTime.now().toIso8601String());
-
           await docRef.set({
             'uid': _usuarioActual!.uid,
             'email': _usuarioActual!.email,
@@ -157,8 +154,7 @@ class _TabPerfilState extends State<TabPerfil>
 
       if (result != null && result.files.first.bytes != null) {
         final bytes = result.files.first.bytes!;
-        final nombre = result.files.first.name;
-        await _subirImagenWeb(bytes, nombre);
+        await _subirImagenWeb(bytes);
       }
     } catch (e) {
       print('Error al seleccionar imagen: $e');
@@ -170,7 +166,7 @@ class _TabPerfilState extends State<TabPerfil>
     }
   }
 
-  Future<void> _subirImagenWeb(List<int> bytes, String nombre) async {
+  Future<void> _subirImagenWeb(List<int> bytes) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -222,7 +218,10 @@ class _TabPerfilState extends State<TabPerfil>
       if (user == null) throw Exception('No hay usuario autenticado');
 
       try {
-        await _storage.ref().child('perfiles/${user.uid}/foto_perfil.jpg').delete();
+        await _storage
+            .ref()
+            .child('perfiles/${user.uid}/foto_perfil.jpg')
+            .delete();
       } catch (e) {
         print('No se pudo eliminar de Storage: $e');
       }
@@ -256,7 +255,9 @@ class _TabPerfilState extends State<TabPerfil>
   }
 
   void _editarNombre() {
-    final TextEditingController controller = TextEditingController(text: _nombreUsuario);
+    final TextEditingController controller = TextEditingController(
+      text: _nombreUsuario,
+    );
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -287,7 +288,9 @@ class _TabPerfilState extends State<TabPerfil>
               }
               Navigator.pop(context);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Coloresapp.colorPrimario),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Coloresapp.colorPrimario,
+            ),
             child: const Text('Guardar'),
           ),
         ],
@@ -310,12 +313,13 @@ class _TabPerfilState extends State<TabPerfil>
           .where('nombreUsuario', isEqualTo: nuevoNombre)
           .limit(1)
           .get();
-      if (querySnapshot.docs.isNotEmpty && querySnapshot.docs.first.id != user.uid) {
+      if (querySnapshot.docs.isNotEmpty &&
+          querySnapshot.docs.first.id != user.uid) {
         if (mounted) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Este nombre de usuario ya está en uso'),
+              content: Text('Este nombre de usuario ya esta en uso'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -357,8 +361,8 @@ class _TabPerfilState extends State<TabPerfil>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cerrar sesión'),
-        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
+        title: const Text('Cerrar sesion'),
+        content: const Text('¿Estas seguro de que quieres cerrar sesion?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -367,7 +371,7 @@ class _TabPerfilState extends State<TabPerfil>
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Cerrar sesión'),
+            child: const Text('Cerrar sesion'),
           ),
         ],
       ),
@@ -455,7 +459,10 @@ class _TabPerfilState extends State<TabPerfil>
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(Icons.logout, color: Coloresapp.colorTexto),
+                        icon: const Icon(
+                          Icons.logout,
+                          color: Coloresapp.colorTexto,
+                        ),
                         onPressed: _cerrarSesion,
                       ),
                     ],
@@ -466,11 +473,16 @@ class _TabPerfilState extends State<TabPerfil>
                     CircleAvatar(
                       radius: 60,
                       backgroundColor: Coloresapp.colorPrimario,
-                      backgroundImage: (_fotoPerfilUrl != null && _fotoPerfilUrl!.isNotEmpty)
+                      backgroundImage:
+                          (_fotoPerfilUrl != null && _fotoPerfilUrl!.isNotEmpty)
                           ? NetworkImage(_fotoPerfilUrl!)
                           : null,
                       child: (_fotoPerfilUrl == null || _fotoPerfilUrl!.isEmpty)
-                          ? const Icon(Icons.person_rounded, color: Colors.white, size: 60)
+                          ? const Icon(
+                              Icons.person_rounded,
+                              color: Colors.white,
+                              size: 60,
+                            )
                           : null,
                     ),
                     Positioned(
@@ -485,7 +497,11 @@ class _TabPerfilState extends State<TabPerfil>
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                           ),
-                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 22),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 22,
+                          ),
                         ),
                       ),
                     ),
@@ -497,7 +513,10 @@ class _TabPerfilState extends State<TabPerfil>
                   children: [
                     Text(
                       _nombreUsuario,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     IconButton(
@@ -515,38 +534,98 @@ class _TabPerfilState extends State<TabPerfil>
                 const SizedBox(height: 8),
                 Text(
                   _miembroDesde,
-                  style: const TextStyle(fontSize: 13, color: Coloresapp.colorTextoFlojo),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Coloresapp.colorTextoFlojo,
+                  ),
                 ),
                 const SizedBox(height: 30),
-                Row(
-                  children: [
-                    _buildTarjetaEstadistica(_animesCalificados, 'Calificados'),
-                    const SizedBox(width: 12),
-                    _buildTarjetaEstadistica(_comentarios, 'Comentarios'),
-                    const SizedBox(width: 12),
-                    _buildTarjetaEstadistica(_tierLists, 'Tier Lists'),
-                  ],
+                // Estadisticas en tiempo real usando StreamBuilder
+                StreamBuilder<DocumentSnapshot>(
+                  stream: _firestore
+                      .collection('usuarios')
+                      .doc(_usuarioActual!.uid)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return Row(
+                        children: [
+                          _buildTarjetaEstadistica('0', 'Calificados'),
+                          const SizedBox(width: 12),
+                          _buildTarjetaEstadistica('0', 'Comentarios'),
+                          const SizedBox(width: 12),
+                          _buildTarjetaEstadistica('0', 'Tier Lists'),
+                        ],
+                      );
+                    }
+                    final data = snapshot.data!.data() as Map<String, dynamic>?;
+                    final tierLists = (data?['tierLists'] ?? 0).toString();
+                    final comentarios = (data?['comentarios'] ?? 0).toString();
+                    final animesCalificados = (data?['animesCalificados'] ?? 0)
+                        .toString();
+                    return Row(
+                      children: [
+                        _buildTarjetaEstadistica(
+                          animesCalificados,
+                          'Calificados',
+                        ),
+                        const SizedBox(width: 12),
+                        _buildTarjetaEstadistica(comentarios, 'Comentarios'),
+                        const SizedBox(width: 12),
+                        _buildTarjetaEstadistica(tierLists, 'Tier Lists'),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 40),
                 _ItemMenuPerfil(
                   icono: Icons.star_rounded,
                   etiqueta: 'Mis calificaciones',
-                  sub: '$_animesCalificados títulos calificados',
+                  sub: 'Proximamente',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Proximamente')),
+                    );
+                  },
                 ),
                 _ItemMenuPerfil(
                   icono: Icons.chat_bubble_outline_rounded,
                   etiqueta: 'Mis comentarios',
-                  sub: '$_comentarios comentarios',
+                  sub: 'Comentarios realizados',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MisComentariosPage(),
+                      ),
+                    );
+                  },
                 ),
                 _ItemMenuPerfil(
                   icono: Icons.emoji_events_rounded,
                   etiqueta: 'Mis Tier Lists',
-                  sub: '$_tierLists listas creadas',
+                  sub: 'Listas creadas',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MisTierlistsPage(),
+                      ),
+                    );
+                  },
                 ),
                 _ItemMenuPerfil(
                   icono: Icons.forum_rounded,
                   etiqueta: 'Foros visitados',
-                  sub: 'Comunidad activa',
+                  sub: 'Historial de foros',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ForosVisitadosPage(),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 30),
                 SizedBox(
@@ -554,12 +633,14 @@ class _TabPerfilState extends State<TabPerfil>
                   child: ElevatedButton.icon(
                     onPressed: _cerrarSesion,
                     icon: const Icon(Icons.logout),
-                    label: const Text('Cerrar sesión'),
+                    label: const Text('Cerrar sesion'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
@@ -600,7 +681,10 @@ class _TabPerfilState extends State<TabPerfil>
             const SizedBox(height: 4),
             Text(
               etiqueta,
-              style: const TextStyle(fontSize: 11, color: Coloresapp.colorTextoFlojo),
+              style: const TextStyle(
+                fontSize: 11,
+                color: Coloresapp.colorTextoFlojo,
+              ),
             ),
           ],
         ),
@@ -608,6 +692,9 @@ class _TabPerfilState extends State<TabPerfil>
     );
   }
 }
+
+// Clases auxiliares _Petala, _PetalaPainterMultiple, _ItemMenuPerfil (sin cambios)
+// (Mantener las mismas que ya tenias, solo asegurar que _ItemMenuPerfil reciba onTap)
 
 class _Petala {
   double x = Random().nextDouble();
@@ -630,7 +717,8 @@ class _PetalaPainterMultiple extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (var p in petalas) {
       double y = (p.y + tiempo * p.velocidadY) % 1.0;
-      double x = p.x +
+      double x =
+          p.x +
           sin(tiempo * p.velocidadX * 2 * pi + p.offsetOnda) *
               p.amplitudOnda /
               size.width;
@@ -674,16 +762,19 @@ class _ItemMenuPerfil extends StatelessWidget {
   final IconData icono;
   final String etiqueta;
   final String sub;
+  final VoidCallback onTap;
+
   const _ItemMenuPerfil({
     required this.icono,
     required this.etiqueta,
     required this.sub,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -713,12 +804,18 @@ class _ItemMenuPerfil extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     sub,
-                    style: const TextStyle(fontSize: 12, color: Coloresapp.colorTextoFlojo),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Coloresapp.colorTextoFlojo,
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: Coloresapp.colorTextoFlojo),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Coloresapp.colorTextoFlojo,
+            ),
           ],
         ),
       ),

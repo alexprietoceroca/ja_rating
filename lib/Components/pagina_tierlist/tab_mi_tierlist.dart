@@ -1,9 +1,10 @@
+// lib/Components/pagina_tierlist/tab_mi_tierlist.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
-import 'package:ja_rating/coloresApp.dart';
+import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/CustomProductImage.dart';
 
 class TabMiTierlist extends StatefulWidget {
@@ -99,6 +100,7 @@ class _TabMiTierlistState extends State<TabMiTierlist> {
       for (var entry in _miTierList.entries) {
         tierData[entry.key] = entry.value;
       }
+      // 1. Publicar la tier list
       await FirebaseFirestore.instance.collection('tierlists_comunidad').add({
         'ownerId': currentUser.uid,
         'ownerName': currentUser.displayName ?? 'Anonimo',
@@ -108,17 +110,30 @@ class _TabMiTierlistState extends State<TabMiTierlist> {
         'commentsCount': 0,
         ...tierData,
       });
+
+      // 2. Incrementar el contador en el documento del usuario
+      final userDocRef = FirebaseFirestore.instance
+          .collection('usuarios')
+          .doc(currentUser.uid);
+      // Usamos set con merge: true para asegurar que se crea el campo si no existe
+      await userDocRef.set({
+        'tierLists': FieldValue.increment(1),
+      }, SetOptions(merge: true));
+
+      // Opcional: también puedes usar update si el documento ya existe
+      // await userDocRef.update({'tierLists': FieldValue.increment(1)});
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tier list publicada en la comunidad')),
       );
     } catch (e) {
+      print('Error al publicar: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error al publicar: $e')));
     }
   }
 
-  // Mover producto a otro tier (sin reordenar dentro del mismo)
   void _moverProductoATier(
     Map<String, dynamic> producto,
     String tierOrigen,
@@ -134,7 +149,6 @@ class _TabMiTierlistState extends State<TabMiTierlist> {
     _guardarMiTierListLocal();
   }
 
-  // Reordenar dentro del mismo tier
   void _reordenarProducto(String tier, int oldIndex, int newIndex) {
     if (oldIndex == newIndex) return;
     setState(() {
@@ -145,7 +159,6 @@ class _TabMiTierlistState extends State<TabMiTierlist> {
     _guardarMiTierListLocal();
   }
 
-  // ===================== AUTO SCROLL VERTICAL =====================
   void _iniciarAutoScrollUp() {
     if (!_autoScrollUp) {
       _autoScrollUp = true;
@@ -208,6 +221,29 @@ class _TabMiTierlistState extends State<TabMiTierlist> {
       child: CustomScrollView(
         controller: _scrollController,
         slivers: [
+          SliverAppBar(
+            title: const Text('Mi Tier List'),
+            backgroundColor: Coloresapp.colorPrimario,
+            foregroundColor: Colors.white,
+            pinned: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.save_rounded),
+                onPressed: _guardarMiTierListLocal,
+                tooltip: 'Guardar',
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded),
+                onPressed: _reiniciarMiTierList,
+                tooltip: 'Reiniciar',
+              ),
+              IconButton(
+                icon: const Icon(Icons.publish_rounded),
+                onPressed: _publicarMiTierList,
+                tooltip: 'Publicar en comunidad',
+              ),
+            ],
+          ),
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
@@ -251,7 +287,6 @@ class _TabMiTierlistState extends State<TabMiTierlist> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      // Área de drop (DragTarget exterior) para mover a otro tier (solo si se suelta en el fondo)
                       DragTarget<Map<String, dynamic>>(
                         onAcceptWithDetails: (details) {
                           final data = details.data;
@@ -265,12 +300,7 @@ class _TabMiTierlistState extends State<TabMiTierlist> {
                         builder: (context, candidateData, rejectedData) {
                           return Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.fromLTRB(
-                              0,
-                              8,
-                              0,
-                              16,
-                            ), // espacio suficiente para la barra nativa
+                            padding: const EdgeInsets.fromLTRB(0, 8, 0, 16),
                             decoration: BoxDecoration(
                               color: _colorPorTier(tier).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
@@ -304,7 +334,6 @@ class _TabMiTierlistState extends State<TabMiTierlist> {
                                       ) {
                                         final index = entry.key;
                                         final producto = entry.value;
-                                        // Cada producto es un DragTarget para reordenar dentro del mismo tier
                                         return _DraggableProductoConReorder(
                                           key: ValueKey(producto['titulo']),
                                           producto: producto,
@@ -361,7 +390,6 @@ class _TabMiTierlistState extends State<TabMiTierlist> {
   }
 }
 
-// Widget que combina Draggable y DragTarget para reordenar dentro del mismo tier
 class _DraggableProductoConReorder extends StatelessWidget {
   final Map<String, dynamic> producto;
   final String tierActual;
@@ -384,11 +412,7 @@ class _DraggableProductoConReorder extends StatelessWidget {
         final tierOrigen = productoData['tierOrigen'] as String;
         final indexOrigen = productoData['indexOrigen'] as int;
         if (tierOrigen == tierActual) {
-          // Reordenar dentro del mismo tier
           onReorder(indexOrigen, indiceActual);
-        } else {
-          // Mover a otro tier (esto lo maneja el DragTarget exterior, pero aquí también podemos notificarlo)
-          // Para evitar duplicados, delegamos en el DragTarget exterior. No hacemos nada aquí.
         }
       },
       builder: (context, candidateData, rejectedData) {

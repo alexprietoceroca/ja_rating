@@ -1,4 +1,4 @@
-// pagina_foro.dart - SIN foros predeterminados
+// lib/Paginas/pagina_foro.dart
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -56,7 +56,6 @@ class _PaginaForoState extends State<PaginaForo>
     });
 
     try {
-      // Solo cargar foros desde Firebase, sin predeterminados
       final forosSnapshot = await _firestore
           .collection('foros')
           .orderBy('fecha', descending: true)
@@ -71,7 +70,6 @@ class _PaginaForoState extends State<PaginaForo>
         };
       }).toList();
 
-      // Foros populares (ordenados por respuestas y visitas)
       _forosPopulares = List.from(_forosRecientes);
       _forosPopulares.sort((a, b) {
         int scoreA = (a['respuestas'] as int) + ((a['vistas'] as int) ~/ 100);
@@ -743,9 +741,27 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
       if (widget.foro.containsKey('id')) {
         final docRef = _firestore.collection('foros').doc(widget.foro['id']);
         await docRef.update({'vistas': FieldValue.increment(1)});
+
+        // Registrar visita del usuario
+        await _registrarVisitaForo(widget.foro['id']);
       }
     } catch (e) {
       print('Error al incrementar vistas: $e');
+    }
+  }
+
+  Future<void> _registrarVisitaForo(String foroId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    try {
+      final visitaRef = _firestore.collection('visitas_foros').doc();
+      await visitaRef.set({
+        'userId': user.uid,
+        'foroId': foroId,
+        'fecha': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error al registrar visita: $e');
     }
   }
 

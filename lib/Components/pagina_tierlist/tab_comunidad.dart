@@ -1,3 +1,4 @@
+// lib/Components/pagina_tierlist/tab_comunidad.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,7 +17,7 @@ class _TabComunidadState extends State<TabComunidad> {
   final User? _currentUser = FirebaseAuth.instance.currentUser;
   bool _isLiking = false;
 
-  String _ordenPor = 'likes'; // 'likes', 'fecha', 'comentarios'
+  String _ordenPor = 'likes';
   bool _ordenAscendente = false;
 
   Stream<QuerySnapshot> _getComunidadStream() {
@@ -38,7 +39,7 @@ class _TabComunidadState extends State<TabComunidad> {
   ) async {
     if (_currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Inicia sesión para dar like')),
+        const SnackBar(content: Text('Inicia sesion para dar like')),
       );
       return;
     }
@@ -73,8 +74,8 @@ class _TabComunidadState extends State<TabComunidad> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar publicación'),
-        content: const Text('¿Estás seguro? Esta acción no se puede deshacer.'),
+        title: const Text('Eliminar publicacion'),
+        content: const Text('¿Estas seguro? Esta accion no se puede deshacer.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -97,9 +98,17 @@ class _TabComunidadState extends State<TabComunidad> {
           .get();
       for (var doc in comments.docs) await doc.reference.delete();
       await _firestore.collection('tierlists_comunidad').doc(docId).delete();
+
+      // Decrementar contador de tierLists del usuario
+      if (_currentUser != null) {
+        await _firestore.collection('usuarios').doc(_currentUser!.uid).update({
+          'tierLists': FieldValue.increment(-1),
+        });
+      }
+
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Publicación eliminada')));
+      ).showSnackBar(const SnackBar(content: Text('Publicacion eliminada')));
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -114,7 +123,7 @@ class _TabComunidadState extends State<TabComunidad> {
         builder: (_) => PaginaDetalleTierlist(
           documentId: docId,
           tierData: data,
-          ownerName: data['ownerName'] ?? 'Anónimo',
+          ownerName: data['ownerName'] ?? 'Anonimo',
           ownerId: data['ownerId'] ?? '',
         ),
       ),
@@ -125,7 +134,6 @@ class _TabComunidadState extends State<TabComunidad> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Filtros de ordenación
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
@@ -143,13 +151,15 @@ class _TabComunidadState extends State<TabComunidad> {
           child: StreamBuilder<QuerySnapshot>(
             stream: _getComunidadStream(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData)
+              if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
+              }
               final docs = snapshot.data!.docs;
-              if (docs.isEmpty)
+              if (docs.isEmpty) {
                 return const Center(
-                  child: Text('No hay publicaciones aún. ¡Sé el primero!'),
+                  child: Text('No hay publicaciones aun. ¡Se el primero!'),
                 );
+              }
               return ListView.builder(
                 itemCount: docs.length,
                 itemBuilder: (context, i) {
@@ -158,7 +168,7 @@ class _TabComunidadState extends State<TabComunidad> {
                   final likes = data['likes'] ?? 0;
                   final likedBy = data['likedBy'] as List? ?? [];
                   final comentariosCount = data['commentsCount'] ?? 0;
-                  final ownerName = data['ownerName'] ?? 'Anónimo';
+                  final ownerName = data['ownerName'] ?? 'Anonimo';
                   final ownerId = data['ownerId'] ?? '';
                   final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
                   final fechaStr = timestamp != null

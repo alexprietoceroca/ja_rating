@@ -49,7 +49,7 @@ class _PaginaTierlistState extends State<PaginaTierlist>
       body: TabBarView(
         controller: _tabController,
         physics:
-            const NeverScrollableScrollPhysics(), // ✅ Desactiva el deslizamiento horizontal
+            const NeverScrollableScrollPhysics(),
         children: [
           TabMiTierlist(todosLosProductos: widget.todosLosProductos),
           const TabComunidad(),

@@ -115,6 +115,67 @@ class _PaginaDetalleTierlistState extends State<PaginaDetalleTierlist> {
     }
   }
 
+  Future<void> _eliminarTierList() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Tier List'),
+        content: const Text('¿Estás seguro? Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    try {
+      // Eliminar comentarios (subcolección)
+      final commentsSnapshot = await _firestore
+          .collection('tierlists_comunidad')
+          .doc(widget.documentId)
+          .collection('comments')
+          .get();
+      for (var doc in commentsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+      // Eliminar el documento principal
+      await _firestore
+          .collection('tierlists_comunidad')
+          .doc(widget.documentId)
+          .delete();
+
+      //Decrementar el contador del usuario
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null && currentUser.uid == widget.ownerId) {
+        await _firestore.collection('usuarios').doc(currentUser.uid).update({
+          'tierLists': FieldValue.increment(-1),
+        });
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Tier list eliminada')));
+        Navigator.pop(context); // Regresar a la pantalla anterior
+      }
+    } catch (e) {
+      print('Error al eliminar: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final tiersOrdenados = [
@@ -138,6 +199,11 @@ class _PaginaDetalleTierlistState extends State<PaginaDetalleTierlist> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          if (_currentUser != null && _currentUser!.uid == widget.ownerId)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              onPressed: _eliminarTierList,
+            ),
           // Fila de likes (fuera del título para evitar overflow)
           Padding(
             padding: const EdgeInsets.only(right: 16),
