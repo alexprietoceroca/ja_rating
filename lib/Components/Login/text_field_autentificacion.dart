@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:ja_rating/coloresapp.dart';
 
-class TextFieldAutentificacion extends StatelessWidget {
+class TextFieldAutentificacion extends StatefulWidget {
   final TextEditingController controllerText;
   final String hintText;
   final FocusNode focusNode;
   final String? Function(String?)? validator;
   final bool esPassword;
   final bool valorInicialOcultarEyeToggle;
-  final bool enabled; // AÑADE ESTA LÍNEA
+  final bool enabled;
 
   const TextFieldAutentificacion({
     super.key,
@@ -18,84 +18,138 @@ class TextFieldAutentificacion extends StatelessWidget {
     this.validator,
     required this.esPassword,
     required this.valorInicialOcultarEyeToggle,
-    this.enabled = true, // AÑADE ESTA LÍNEA CON VALOR POR DEFECTO
+    this.enabled = true,
   });
 
   @override
+  State<TextFieldAutentificacion> createState() =>
+      _TextFieldAutentificacionState();
+}
+
+class _TextFieldAutentificacionState extends State<TextFieldAutentificacion> {
+  late bool _ocultarTexto;
+  bool _hasFocus = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ocultarTexto = widget.valorInicialOcultarEyeToggle;
+    widget.focusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.removeListener(_onFocusChange);
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    setState(() {
+      _hasFocus = widget.focusNode.hasFocus;
+    });
+  }
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _ocultarTexto = !_ocultarTexto;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Determinar el color de fondo según el estado
+    Color getFillColor() {
+      if (!widget.enabled) return Coloresapp.colorInputFondo.withOpacity(0.5);
+      if (_hasFocus) return Coloresapp.colorInputFondo.withOpacity(1.0);
+      return Coloresapp.colorInputFondo;
+    }
+
+    // Determinar el color del borde
+    Color getBorderColor() {
+      if (!widget.enabled) return Coloresapp.colorInputBorde.withOpacity(0.3);
+      if (_hasFocus) return Coloresapp.colorInputFoco;
+      return Coloresapp.colorInputBorde;
+    }
+
+    // Determinar el ancho del borde
+    double getBorderWidth() {
+      if (!widget.enabled) return 1;
+      if (_hasFocus) return 2;
+      return 1;
+    }
+
     return TextFormField(
-      controller: controllerText,
-      focusNode: focusNode,
-      validator: validator,
-      obscureText: esPassword ? valorInicialOcultarEyeToggle : false,
-      enabled: enabled, // AÑADE ESTA LÍNEA
+      controller: widget.controllerText,
+      focusNode: widget.focusNode,
+      validator: widget.validator,
+      obscureText: widget.esPassword ? _ocultarTexto : false,
+      enabled: widget.enabled,
       style: TextStyle(
-        color: enabled ? Coloresapp.colorBlanco : Coloresapp.colorTextoFlojo,
+        color: widget.enabled
+            ? Coloresapp.colorInputTexto
+            : Coloresapp.colorTextoFlojo,
+        fontSize: 16,
       ),
       decoration: InputDecoration(
-        hintText: hintText,
+        hintText: widget.hintText,
         hintStyle: TextStyle(
-          color: enabled 
-              ? Coloresapp.colorTextoFlojo.withOpacity(0.7)
-              : Coloresapp.colorTextoFlojo.withOpacity(0.3),
+          color: widget.enabled
+              ? Coloresapp.colorInputHint
+              : Coloresapp.colorInputHint.withOpacity(0.4),
+          fontSize: 14,
         ),
         filled: true,
-        fillColor: enabled 
-            ? Coloresapp.colorPrimario.withOpacity(0.1)
-            : Coloresapp.colorPrimario.withOpacity(0.05),
+        fillColor: getFillColor(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(
-            color: enabled 
-                ? Coloresapp.colorContorno.withOpacity(0.3)
-                : Coloresapp.colorContorno.withOpacity(0.1),
+            color: getBorderColor(),
+            width: getBorderWidth(),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(
-            color: enabled 
-                ? Coloresapp.colorContorno.withOpacity(0.3)
-                : Coloresapp.colorContorno.withOpacity(0.1),
+            color: Coloresapp.colorInputBorde,
+            width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(
-            color: enabled ? Coloresapp.colorPrimario : Coloresapp.colorContorno,
-            width: enabled ? 2 : 1,
+            color: Coloresapp.colorInputFoco,
+            width: 2,
           ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(
-            color: enabled ? Coloresapp.colorRojoOscuro : Coloresapp.colorContorno,
-            width: enabled ? 2 : 1,
+            color: Coloresapp.colorRojoOscuro,
+            width: 1.5,
           ),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(
-            color: enabled ? Coloresapp.colorRojoOscuro : Coloresapp.colorContorno,
-            width: enabled ? 2 : 1,
+            color: Coloresapp.colorRojoOscuro,
+            width: 2,
           ),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        suffixIcon: esPassword
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
+        suffixIcon: widget.esPassword
             ? IconButton(
                 icon: Icon(
-                  valorInicialOcultarEyeToggle
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                  color: enabled 
-                      ? Coloresapp.colorPrimario
-                      : Coloresapp.colorTextoFlojo,
+                  _ocultarTexto ? Icons.visibility_off : Icons.visibility,
+                  color: _hasFocus && widget.enabled
+                      ? Coloresapp.colorInputFoco
+                      : (widget.enabled
+                          ? Coloresapp.colorInputHint
+                          : Coloresapp.colorInputHint.withOpacity(0.4)),
                 ),
-                onPressed: enabled ? () {
-                  // Aquí iría la lógica para mostrar/ocultar contraseña
-                  // Por ahora solo imprimimos
-                  print('Toggle password visibility');
-                } : null,
+                onPressed: widget.enabled ? _togglePasswordVisibility : null,
               )
             : null,
       ),

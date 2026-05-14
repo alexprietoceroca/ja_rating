@@ -15,12 +15,13 @@ class PaginaLogin extends StatefulWidget {
 }
 
 class _PaginaLoginState extends State<PaginaLogin> {
-  final TextEditingController _usuarioOEmailController = TextEditingController();
+  final TextEditingController _usuarioOEmailController =
+      TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FocusNode _usuarioOEmailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final _formKey = GlobalKey<FormState>();
-  
+
   bool _isHovering = false;
   bool _isLoading = false;
 
@@ -50,7 +51,6 @@ class _PaginaLoginState extends State<PaginaLogin> {
     return null;
   }
 
-  // Obtener email a partir del nombre de usuario
   Future<String?> _getEmailFromUsername(String username) async {
     try {
       final firestore = FirebaseFirestore.instance;
@@ -59,7 +59,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
           .where('nombreUsuario', isEqualTo: username)
           .limit(1)
           .get();
-      
+
       if (querySnapshot.docs.isNotEmpty) {
         return querySnapshot.docs.first.data()['email'];
       }
@@ -79,8 +79,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
       try {
         String input = _usuarioOEmailController.text.trim();
         String email = input;
-        
-        // Si el input NO es un email (no contiene @), buscar el email por nombre de usuario
+
         if (!input.contains('@')) {
           final emailEncontrado = await _getEmailFromUsername(input);
           if (emailEncontrado == null) {
@@ -91,12 +90,12 @@ class _PaginaLoginState extends State<PaginaLogin> {
           }
           email = emailEncontrado;
         }
-        
-        // Iniciar sesión con Firebase Auth
-        UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: email,
-          password: _passwordController.text.trim(),
-        );
+
+        UserCredential userCredential = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(
+              email: email,
+              password: _passwordController.text.trim(),
+            );
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -113,12 +112,14 @@ class _PaginaLoginState extends State<PaginaLogin> {
               duration: const Duration(seconds: 1),
             ),
           );
-          
+
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const PaginaPrincipal()),
+                MaterialPageRoute(
+                  builder: (context) => const PaginaPrincipal(),
+                ),
               );
             }
           });
@@ -136,7 +137,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
         } else {
           mensajeError = 'Error al iniciar sesión: ${e.message}';
         }
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -182,259 +183,265 @@ class _PaginaLoginState extends State<PaginaLogin> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Coloresapp.colorFonsInici,
-      body: Stack(
-        children: [
-          Container(
-            color: Coloresapp.colorFonsInici,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            24.0,
+            24.0,
+            24.0,
+            MediaQuery.of(context).viewInsets.bottom + 20,
           ),
-          
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 120),
-                      
-                      const SizedBox(height: 30),
-                      
-                      // Widget animado de bienvenida
-                      TextoIdiomas(
-                        duracionAnimacion: const Duration(milliseconds: 800),
-                        duracionPausa: const Duration(seconds: 2),
-                        estiloBase: TextStyle(
-                          color: Coloresapp.colorRojoOscuro,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          shadows: [
-                            Shadow(
-                              color: Coloresapp.colorPrimarioAccentuado.withOpacity(0.4),
-                              blurRadius: 10,
-                              offset: const Offset(3, 3),
-                            ),
-                          ],
-                        ),
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight:
+                  MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).padding.vertical -
+                  MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: IntrinsicHeight(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    const SizedBox(height: 20),
+
+                    TextoIdiomas(
+                      duracionAnimacion: const Duration(milliseconds: 800),
+                      duracionPausa: const Duration(seconds: 2),
+                      estiloBase: TextStyle(
+                        color: Coloresapp.colorRojoOscuro,
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            color: Coloresapp.colorPrimarioAccentuado
+                                .withOpacity(0.4),
+                            blurRadius: 10,
+                            offset: const Offset(3, 3),
+                          ),
+                        ],
                       ),
-                      
-                      const SizedBox(height: 40),
-                      
-                      // Campo de usuario o email (cambiado)
-                      TextFieldAutentificacion(
-                        controllerText: _usuarioOEmailController,
-                        hintText: 'Nombre de usuario o correo electrónico',
-                        focusNode: _usuarioOEmailFocus,
-                        validator: _validateUsuarioOEmail,
-                        esPassword: false, 
-                        valorInicialOcultarEyeToggle: true,
-                      ),
-                      
-                      const SizedBox(height: 20),
-                      
-                      // Campo de contraseña
-                      TextFieldAutentificacion(
-                        controllerText: _passwordController,
-                        hintText: 'Contraseña',
-                        focusNode: _passwordFocus,
-                        validator: _validatePassword,
-                        esPassword: true, 
-                        valorInicialOcultarEyeToggle: true,
-                      ),
-                      
-                      const SizedBox(height: 15),
-                      
-                      // Enlace "¿Olvidaste tu contraseña?"
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: _isLoading ? null : () {
-                            print('Navegar a recuperar contraseña');
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: _isLoading 
-                                ? Coloresapp.colorTextoFlojo 
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    TextFieldAutentificacion(
+                      controllerText: _usuarioOEmailController,
+                      hintText: 'Nombre de usuario o correo electrónico',
+                      focusNode: _usuarioOEmailFocus,
+                      validator: _validateUsuarioOEmail,
+                      esPassword: false,
+                      valorInicialOcultarEyeToggle: true,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    TextFieldAutentificacion(
+                      controllerText: _passwordController,
+                      hintText: 'Contraseña',
+                      focusNode: _passwordFocus,
+                      validator: _validatePassword,
+                      esPassword: true,
+                      valorInicialOcultarEyeToggle: true,
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _isLoading ? null : () {},
+                        child: Text(
+                          '¿Olvidaste tu contraseña?',
+                          style: TextStyle(
+                            color: _isLoading
+                                ? Coloresapp.colorTextoFlojo
                                 : Coloresapp.colorPrimario,
-                          ),
-                          child: Text(
-                            '¿Olvidaste tu contraseña?',
-                            style: TextStyle(
-                              color: _isLoading 
-                                  ? Coloresapp.colorTextoFlojo 
-                                  : Coloresapp.colorPrimario,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
                           ),
                         ),
                       ),
-                      
-                      const SizedBox(height: 30),
-                      
-                      // Botón de login
-                      MouseRegion(
-                        onEnter: _isLoading ? null : (_) => setState(() => _isHovering = true),
-                        onExit: _isLoading ? null : (_) => setState(() => _isHovering = false),
-                        child: GestureDetector(
-                          onTap: _isLoading ? null : _handleLogin,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            width: double.infinity,
-                            height: 55,
-                            decoration: BoxDecoration(
-                              color: _isLoading 
-                                  ? Coloresapp.colorNaranja.withOpacity(0.5)
-                                  : (_isHovering 
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    MouseRegion(
+                      onEnter: _isLoading
+                          ? null
+                          : (_) => setState(() => _isHovering = true),
+                      onExit: _isLoading
+                          ? null
+                          : (_) => setState(() => _isHovering = false),
+                      child: GestureDetector(
+                        onTap: _isLoading ? null : _handleLogin,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: double.infinity,
+                          height: 55,
+                          decoration: BoxDecoration(
+                            color: _isLoading
+                                ? Coloresapp.colorNaranja.withOpacity(0.5)
+                                : (_isHovering
                                       ? Coloresapp.colorNaranja.withOpacity(0.9)
                                       : Coloresapp.colorNaranja),
-                              borderRadius: BorderRadius.circular(30),
-                              boxShadow: _isHovering && !_isLoading
-                                  ? [
-                                      BoxShadow(
-                                        color: Coloresapp.colorNaranja.withOpacity(0.5),
-                                        blurRadius: 15,
-                                        offset: const Offset(0, 5),
-                                      )
-                                    ]
-                                  : [
-                                      BoxShadow(
-                                        color: Colors.black26,
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 3),
-                                      )
-                                    ],
-                            ),
-                            child: Center(
-                              child: _isLoading
-                                  ? SizedBox(
-                                      height: 30,
-                                      width: 30,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 3,
-                                      ),
-                                    )
-                                  : Text(
-                                      'ENTRAR',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.2,
-                                      ),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: _isHovering && !_isLoading
+                                ? [
+                                    BoxShadow(
+                                      color: Coloresapp.colorNaranja
+                                          .withOpacity(0.5),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 5),
                                     ),
-                            ),
+                                  ]
+                                : [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                          ),
+                          child: Center(
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 30,
+                                    width: 30,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 3,
+                                    ),
+                                  )
+                                : const Text(
+                                    'ENTRAR',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
-                      
-                      const SizedBox(height: 40),
-                      
-                      // Separador "o"
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Divider(
-                              color: Coloresapp.colorContorno.withOpacity(0.3),
-                              thickness: 1,
-                            ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: Coloresapp.colorContorno.withOpacity(0.3),
+                            thickness: 1,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              'O CONTINÚA CON',
-                              style: TextStyle(
-                                color: Coloresapp.colorTextoFlojo.withOpacity(0.7),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Divider(
-                              color: Coloresapp.colorContorno.withOpacity(0.3),
-                              thickness: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: 30),
-                      
-                      // Botones sociales
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildSocialButton(
-                            icon: Icons.g_mobiledata_rounded,
-                            onTap: _isLoading ? null : () => print('Login con Google'),
-                          ),
-                          const SizedBox(width: 20),
-                          _buildSocialButton(
-                            icon: Icons.facebook_rounded,
-                            onTap: _isLoading ? null : () => print('Login con Facebook'),
-                          ),
-                          const SizedBox(width: 20),
-                          _buildSocialButton(
-                            icon: Icons.apple_rounded,
-                            onTap: _isLoading ? null : () => print('Login con Apple'),
-                          ),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: 30),
-                      
-                      // Enlace de registro
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '¿No tienes una cuenta? ',
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'O CONTINÚA CON',
                             style: TextStyle(
-                              color: Coloresapp.colorTextoFlojo,
-                              fontSize: 16,
+                              color: Coloresapp.colorTextoLigero,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1,
                             ),
                           ),
-                          GestureDetector(
-                            onTap: _isLoading ? null : () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const PaginaRegistro()),
-                              );
-                            },
-                            child: Text(
-                              'Regístrate',
-                              style: TextStyle(
-                                color: _isLoading 
-                                    ? Coloresapp.colorTextoFlojo 
-                                    : Coloresapp.colorPrimario,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                decoration: TextDecoration.underline,
-                                decorationColor: _isLoading 
-                                    ? Coloresapp.colorTextoFlojo
-                                    : Coloresapp.colorPrimarioAccentuado,
-                                decorationThickness: 2,
-                              ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: Coloresapp.colorContorno.withOpacity(0.3),
+                            thickness: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildSocialButton(
+                          icon: Icons.g_mobiledata_rounded,
+                          onTap: _isLoading ? null : () {},
+                        ),
+                        const SizedBox(width: 20),
+                        _buildSocialButton(
+                          icon: Icons.facebook_rounded,
+                          onTap: _isLoading ? null : () {},
+                        ),
+                        const SizedBox(width: 20),
+                        _buildSocialButton(
+                          icon: Icons.apple_rounded,
+                          onTap: _isLoading ? null : () {},
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '¿No tienes una cuenta? ',
+                          style: TextStyle(
+                            color: Coloresapp.colorTextoLigero,
+                            fontSize: 16,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: _isLoading
+                              ? null
+                              : () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const PaginaRegistro(),
+                                    ),
+                                  );
+                                },
+                          child: Text(
+                            'Regístrate',
+                            style: TextStyle(
+                              color: _isLoading
+                                  ? Coloresapp.colorTextoFlojo
+                                  : Coloresapp.colorPrimario,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              decoration: TextDecoration.underline,
+                              decorationColor: _isLoading
+                                  ? Coloresapp.colorTextoFlojo
+                                  : Coloresapp.colorPrimarioAccentuado,
+                              decorationThickness: 2,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildSocialButton({required IconData icon, required VoidCallback? onTap}) {
+  Widget _buildSocialButton({
+    required IconData icon,
+    required VoidCallback? onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -447,19 +454,21 @@ class _PaginaLoginState extends State<PaginaLogin> {
             color: Coloresapp.colorContorno.withOpacity(0.2),
             width: 1,
           ),
-          boxShadow: onTap == null ? [] : [
-            BoxShadow(
-              color: Coloresapp.colorSombraCard,
-              blurRadius: 8,
-              offset: const Offset(2, 2),
-            ),
-          ],
+          boxShadow: onTap == null
+              ? []
+              : [
+                  BoxShadow(
+                    color: Coloresapp.colorSombraCard,
+                    blurRadius: 8,
+                    offset: const Offset(2, 2),
+                  ),
+                ],
         ),
         child: Icon(
           icon,
           size: 35,
-          color: onTap == null 
-              ? Coloresapp.colorTextoFlojo 
+          color: onTap == null
+              ? Coloresapp.colorTextoFlojo
               : Coloresapp.colorPrimario,
         ),
       ),

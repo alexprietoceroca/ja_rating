@@ -7,11 +7,11 @@ class TextoIdiomas extends StatefulWidget {
   final TextStyle? estiloBase;
 
   const TextoIdiomas({
-    Key? key,
+    super.key,
     this.duracionAnimacion = const Duration(milliseconds: 800),
     this.duracionPausa = const Duration(seconds: 2),
     this.estiloBase,
-  }) : super(key: key);
+  });
 
   @override
   State<TextoIdiomas> createState() => _TextoIdiomasState();

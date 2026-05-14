@@ -14,7 +14,7 @@ class BotonAPaginaprincipal extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: accioBoto,
-      child: Container(
+      child: SizedBox(
         width: 300,
         height: 120,
         child: Stack(

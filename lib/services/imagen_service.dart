@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:ja_rating/Services/imagen_service.dart';
 
 class ImagenService {
   final FirebaseStorage _storage = FirebaseStorage.instance;

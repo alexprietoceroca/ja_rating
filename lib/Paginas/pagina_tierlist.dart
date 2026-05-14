@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ja_rating/Components/CustomProductImage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'package:ja_rating/coloresApp.dart';
+import 'package:ja_rating/coloresapp.dart';
 
 class PaginaTierlist extends StatefulWidget {
   final List<Map<String, dynamic>> todosLosProductos;
@@ -68,6 +68,7 @@ class _PaginaTierlistState extends State<PaginaTierlist> {
       toSave[entry.key] = entry.value;
     }
     await _prefs.setString('tierlist_data', json.encode(toSave));
+    if (!mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Cambios guardados')));
@@ -78,6 +79,7 @@ class _PaginaTierlistState extends State<PaginaTierlist> {
     await _prefs.remove('tierlist_data');
     // Forzar una reconstrucción completa de los draggables
     setState(() {});
+    if (!mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Tier list reiniciada')));
