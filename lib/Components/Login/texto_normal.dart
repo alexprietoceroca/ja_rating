@@ -1,7 +1,7 @@
 // texto_normal.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ja_rating/coloresApp.dart';
+import 'package:ja_rating/coloresapp.dart';
 
 class TextoNormal extends StatelessWidget {
   final String contingutText;

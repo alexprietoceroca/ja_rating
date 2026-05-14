@@ -3,56 +3,34 @@ import 'package:flutter/material.dart';
 import 'package:ja_rating/Components/CustomProductImage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'package:ja_rating/coloresapp.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ja_rating/coloresApp.dart';
+import 'package:ja_rating/Components/pagina_tierlist/tab_mi_tierlist.dart';
+import 'package:ja_rating/Components/pagina_tierlist/tab_comunidad.dart';
 
 class PaginaTierlist extends StatefulWidget {
   final List<Map<String, dynamic>> todosLosProductos;
-
   const PaginaTierlist({super.key, required this.todosLosProductos});
 
   @override
   State<PaginaTierlist> createState() => _PaginaTierlistState();
 }
 
-class _PaginaTierlistState extends State<PaginaTierlist> {
-  static const List<String> tiers = [
-    'S',
-    'A',
-    'B',
-    'C',
-    'D',
-    'E',
-    'F',
-    'Dropeado',
-    'No visto',
-  ];
-
-  late Map<String, List<Map<String, dynamic>>> _productosPorTier;
-  final ScrollController _scrollController = ScrollController();
-  bool _autoScrollUp = false;
-  bool _autoScrollDown = false;
-  late SharedPreferences _prefs;
+class _PaginaTierlistState extends State<PaginaTierlist>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _cargarDatosGuardados();
+    _tabController = TabController(length: 2, vsync: this);
   }
 
-  Future<void> _cargarDatosGuardados() async {
-    _prefs = await SharedPreferences.getInstance();
-    final String? datosGuardados = _prefs.getString('tierlist_data');
-    if (datosGuardados != null) {
-      final Map<String, dynamic> decoded = json.decode(datosGuardados);
-      _productosPorTier = {};
-      for (var tier in tiers) {
-        final List<dynamic> lista = decoded[tier] ?? [];
-        _productosPorTier[tier] = lista.cast<Map<String, dynamic>>();
-      }
-    } else {
-      _inicializarProductos();
-    }
-    setState(() {});
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   void _inicializarProductos() {
@@ -164,217 +142,28 @@ class _PaginaTierlistState extends State<PaginaTierlist> {
 
   @override
   Widget build(BuildContext context) {
-    final bool esWeb = MediaQuery.of(context).size.width > 800;
-    final double padding = esWeb ? 40 : 20;
-    final double alturaFila = 120;
-
     return Scaffold(
       backgroundColor: Coloresapp.colorFondo,
       appBar: AppBar(
-        title: const Text('Tier Lists (Arrastra para reorganizar)'),
+        title: const Text('Tier Lists'),
         backgroundColor: Coloresapp.colorPrimario,
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _guardarDatos,
-            tooltip: 'Guardar cambios',
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _reiniciar,
-            tooltip: 'Reiniciar tier list',
-          ),
-        ],
-      ),
-      body: Listener(
-        onPointerMove: (event) {
-          final RenderBox box = context.findRenderObject() as RenderBox;
-          final localPosition = box.globalToLocal(event.position);
-          final double screenHeight = MediaQuery.of(context).size.height;
-          final double topThreshold = screenHeight * 0.15;
-          final double bottomThreshold = screenHeight * 0.85;
-
-          if (localPosition.dy < topThreshold) {
-            _iniciarAutoScrollUp();
-          } else {
-            _detenerAutoScrollUp();
-          }
-
-          if (localPosition.dy > bottomThreshold) {
-            _iniciarAutoScrollDown();
-          } else {
-            _detenerAutoScrollDown();
-          }
-        },
-        onPointerUp: (_) {
-          _detenerAutoScrollUp();
-          _detenerAutoScrollDown();
-        },
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            SliverPadding(
-              padding: EdgeInsets.all(padding),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate(
-                  tiers.map((tier) {
-                    final productos = _productosPorTier[tier] ?? [];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _colorPorTier(tier),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                tier,
-                                style: const TextStyle(
-                                  fontFamily: 'HoshikoSatsuki',
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              '${productos.length} títulos',
-                              style: const TextStyle(
-                                fontFamily: 'HoshikoSatsuki',
-                                fontSize: 14,
-                                color: Coloresapp.colorTextoFlojo,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        DragTarget<Map<String, dynamic>>(
-                          onAcceptWithDetails: (details) {
-                            final producto = details.data;
-                            final tierOrigen = _encontrarTierDeProducto(
-                              producto,
-                            );
-                            if (tierOrigen != null && tierOrigen != tier) {
-                              _moverProducto(producto, tierOrigen, tier);
-                            }
-                          },
-                          builder: (context, candidateData, rejectedData) {
-                            return Container(
-                              constraints: BoxConstraints(
-                                minHeight: alturaFila,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              decoration: BoxDecoration(
-                                color: _colorPorTier(tier).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: candidateData.isNotEmpty
-                                      ? _colorPorTier(tier)
-                                      : Colors.transparent,
-                                  width: 2,
-                                ),
-                              ),
-                              child: productos.isEmpty
-                                  ? Center(
-                                      child: Text(
-                                        'Arrastra aquí',
-                                        style: TextStyle(
-                                          fontFamily: 'HoshikoSatsuki',
-                                          color: _colorPorTier(
-                                            tier,
-                                          ).withOpacity(0.6),
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    )
-                                  : SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        children: productos.map((producto) {
-                                          return _DraggableProducto(
-                                            producto: producto,
-                                            tierActual: tier,
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ),
-                            );
-                          },
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Mi Tier List'),
+            Tab(text: 'Comunidad'),
           ],
         ),
       ),
-    );
-  }
-
-  String? _encontrarTierDeProducto(Map<String, dynamic> producto) {
-    for (var entry in _productosPorTier.entries) {
-      if (entry.value.any((p) => p['titulo'] == producto['titulo'])) {
-        return entry.key;
-      }
-    }
-    return null;
-  }
-}
-
-// Widget arrastrable (clave única por producto para evitar conflictos)
-class _DraggableProducto extends StatelessWidget {
-  final Map<String, dynamic> producto;
-  final String tierActual;
-
-  const _DraggableProducto({required this.producto, required this.tierActual});
-
-  @override
-  Widget build(BuildContext context) {
-    return Draggable<Map<String, dynamic>>(
-      data: producto,
-      feedback: Material(
-        elevation: 4.0,
-        borderRadius: BorderRadius.circular(8),
-        child: _ProductoImage(producto: producto, width: 80),
-      ),
-      childWhenDragging: Opacity(
-        opacity: 0.4,
-        child: _ProductoImage(producto: producto, width: 80),
-      ),
-      child: _ProductoImage(producto: producto, width: 80),
-    );
-  }
-}
-
-class _ProductoImage extends StatelessWidget {
-  final Map<String, dynamic> producto;
-  final double width;
-  const _ProductoImage({required this.producto, required this.width});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: CustomProductImage(
-          malId: producto['malId'] ?? 0,
-          originalUrl: producto['img'] ?? '',
-          width: width,
-          height: width * 1.25,
-          fit: BoxFit.cover,
-        ),
+      body: TabBarView(
+        controller: _tabController,
+        physics:
+            const NeverScrollableScrollPhysics(),
+        children: [
+          TabMiTierlist(todosLosProductos: widget.todosLosProductos),
+          const TabComunidad(),
+        ],
       ),
     );
   }

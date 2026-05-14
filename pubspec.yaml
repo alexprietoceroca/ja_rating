@@ -1,4 +1,4 @@
-﻿name: ja_rating
+name: ja_rating
 description: "A new Flutter project."
 publish_to: 'none'
 version: 0.1.0
@@ -24,9 +24,12 @@ dependencies:
   http: ^1.6.0  # ← solo una vez (versión más reciente)
   google_fonts: ^8.0.2
   flutter_dotenv: ^5.1.0
+
+  cached_network_image: ^3.4.1
   shared_preferences: ^2.5.5
   file_picker: ^11.0.2
   intl: ^0.20.2
+  flutter_image_compress: ^2.4.0
 
 dev_dependencies:
   flutter_test:

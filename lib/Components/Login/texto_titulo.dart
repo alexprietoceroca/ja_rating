@@ -1,6 +1,6 @@
 // texto_titulo.dart
 import 'package:flutter/material.dart';
-import 'package:ja_rating/coloresApp.dart';
+import 'package:ja_rating/coloresapp.dart';
 
 class TextoTitulo extends StatelessWidget {
   final String contingutText;
