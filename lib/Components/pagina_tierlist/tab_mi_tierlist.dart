@@ -96,10 +96,11 @@ class _TabMiTierlistState extends State<TabMiTierlist> {
       return;
     }
     try {
-      final Map<String, dynamic> tierData = {};
+      final tierData = <String, dynamic>{};
       for (var entry in _miTierList.entries) {
         tierData[entry.key] = entry.value;
       }
+
       // 1. Publicar la tier list
       await FirebaseFirestore.instance.collection('tierlists_comunidad').add({
         'ownerId': currentUser.uid,
@@ -111,26 +112,31 @@ class _TabMiTierlistState extends State<TabMiTierlist> {
         ...tierData,
       });
 
-      // 2. Incrementar el contador en el documento del usuario
+      // 2. Incrementar el contador usando transacción (más seguro)
       final userDocRef = FirebaseFirestore.instance
           .collection('usuarios')
           .doc(currentUser.uid);
-      // Usamos set con merge: true para asegurar que se crea el campo si no existe
-      await userDocRef.set({
-        'tierLists': FieldValue.increment(1),
-      }, SetOptions(merge: true));
-
-      // Opcional: también puedes usar update si el documento ya existe
-      // await userDocRef.update({'tierLists': FieldValue.increment(1)});
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final snapshot = await transaction.get(userDocRef);
+        if (!snapshot.exists) {
+          // Si el documento no existe, lo creamos con tierLists = 1
+          transaction.set(userDocRef, {'tierLists': 1});
+        } else {
+          final currentTierLists = (snapshot.data()?['tierLists'] as int?) ?? 0;
+          transaction.update(userDocRef, {'tierLists': currentTierLists + 1});
+        }
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tier list publicada en la comunidad')),
+        const SnackBar(
+          content: Text('Tier list publicada. Contador actualizado.'),
+        ),
       );
     } catch (e) {
-      print('Error al publicar: $e');
+      print('Error: $e');
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error al publicar: $e')));
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 

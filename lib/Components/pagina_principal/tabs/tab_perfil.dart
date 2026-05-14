@@ -1,11 +1,10 @@
-// lib/Components/pagina_principal/tabs/tab_perfil.dart
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart'; // NUEVO
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
 import 'package:ja_rating/Paginas/pagina_login.dart';
@@ -27,10 +26,9 @@ class _TabPerfilState extends State<TabPerfil>
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   User? _usuarioActual;
-  String? _fotoPerfilUrl;
+  String? _fotoPerfilBase64;
   String _nombreUsuario = '';
   bool _cargandoDatos = true;
   String _miembroDesde = '';
@@ -43,6 +41,11 @@ class _TabPerfilState extends State<TabPerfil>
       vsync: this,
       duration: const Duration(seconds: 8),
     )..repeat();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_usuarioActual != null) {
+        _corregirContadorTierLists();
+      }
+    });
   }
 
   @override
@@ -70,8 +73,8 @@ class _TabPerfilState extends State<TabPerfil>
               _usuarioActual?.displayName ??
               _usuarioActual?.email?.split('@')[0] ??
               'Usuario';
-          _fotoPerfilUrl = data?['fotoPerfilUrl'];
-          if (_fotoPerfilUrl == '') _fotoPerfilUrl = null;
+          _fotoPerfilBase64 = data?['fotoPerfilBase64'];
+          if (_fotoPerfilBase64 == '') _fotoPerfilBase64 = null;
           _miembroDesde = _formatearFecha(data?['fechaRegistro']);
         } else {
           _nombreUsuario =
@@ -83,7 +86,7 @@ class _TabPerfilState extends State<TabPerfil>
             'uid': _usuarioActual!.uid,
             'email': _usuarioActual!.email,
             'nombreUsuario': _nombreUsuario,
-            'fotoPerfilUrl': '',
+            'fotoPerfilBase64': '',
             'fechaRegistro': DateTime.now().toIso8601String(),
             'animesCalificados': 0,
             'comentarios': 0,
@@ -97,6 +100,25 @@ class _TabPerfilState extends State<TabPerfil>
     } finally {
       if (mounted) setState(() => _cargandoDatos = false);
     }
+  }
+
+  Future<void> _corregirContadorTierLists() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('tierlists_comunidad')
+        .where('ownerId', isEqualTo: user.uid)
+        .get();
+
+    final int count = querySnapshot.docs.length;
+
+    await FirebaseFirestore.instance
+        .collection('usuarios')
+        .doc(user.uid)
+        .update({'tierLists': count});
+
+    print('Contador corregido a $count');
   }
 
   String _formatearFecha(String? fechaIso) {
@@ -124,10 +146,10 @@ class _TabPerfilState extends State<TabPerfil>
               title: const Text('Subir foto'),
               onTap: () {
                 Navigator.pop(context);
-                _seleccionarImagenWeb();
+                _seleccionarImagen();
               },
             ),
-            if (_fotoPerfilUrl != null && _fotoPerfilUrl!.isNotEmpty)
+            if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty)
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: const Text('Eliminar foto'),
@@ -142,31 +164,34 @@ class _TabPerfilState extends State<TabPerfil>
     );
   }
 
-  Future<void> _seleccionarImagenWeb() async {
+  Future<void> _seleccionarImagen() async {
+    print('Seleccionando imagen...');
     try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('No hay usuario autenticado');
-
-      FilePickerResult? result = await FilePicker.pickFiles(
-        type: FileType.image,
-        allowMultiple: false,
+      final picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 300,
+        maxHeight: 300,
+        imageQuality: 70,
       );
-
-      if (result != null && result.files.first.bytes != null) {
-        final bytes = result.files.first.bytes!;
-        await _subirImagenWeb(bytes);
+      if (pickedFile != null) {
+        print('Imagen seleccionada: ${pickedFile.path}');
+        final bytes = await pickedFile.readAsBytes();
+        final base64String = base64Encode(bytes);
+        print('Base64 generado, longitud: ${base64String.length}');
+        await _guardarFotoBase64(base64String);
+      } else {
+        print('No se seleccionó ninguna imagen');
       }
     } catch (e) {
       print('Error al seleccionar imagen: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
     }
   }
 
-  Future<void> _subirImagenWeb(List<int> bytes) async {
+  Future<void> _guardarFotoBase64(String base64String) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -177,21 +202,13 @@ class _TabPerfilState extends State<TabPerfil>
       final user = _auth.currentUser;
       if (user == null) throw Exception('No hay usuario autenticado');
 
-      final Uint8List uint8List = Uint8List.fromList(bytes);
-      final ref = _storage.ref().child('perfiles/${user.uid}/foto_perfil.jpg');
-      await ref.putData(uint8List, SettableMetadata(contentType: 'image/jpeg'));
-      final url = await ref.getDownloadURL();
-
       await _firestore.collection('usuarios').doc(user.uid).update({
-        'fotoPerfilUrl': url,
+        'fotoPerfilBase64': base64String,
       });
-      await user.updatePhotoURL(url);
-      await user.reload();
 
       if (mounted) {
         setState(() {
-          _fotoPerfilUrl = url;
-          _usuarioActual = _auth.currentUser;
+          _fotoPerfilBase64 = base64String;
         });
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -202,7 +219,7 @@ class _TabPerfilState extends State<TabPerfil>
         );
       }
     } catch (e) {
-      print('Error al subir imagen: $e');
+      print('Error al guardar foto: $e');
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -217,25 +234,13 @@ class _TabPerfilState extends State<TabPerfil>
       final user = _auth.currentUser;
       if (user == null) throw Exception('No hay usuario autenticado');
 
-      try {
-        await _storage
-            .ref()
-            .child('perfiles/${user.uid}/foto_perfil.jpg')
-            .delete();
-      } catch (e) {
-        print('No se pudo eliminar de Storage: $e');
-      }
-
       await _firestore.collection('usuarios').doc(user.uid).update({
-        'fotoPerfilUrl': '',
+        'fotoPerfilBase64': '',
       });
-      await user.updatePhotoURL(null);
-      await user.reload();
 
       if (mounted) {
         setState(() {
-          _fotoPerfilUrl = null;
-          _usuarioActual = _auth.currentUser;
+          _fotoPerfilBase64 = null;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -471,13 +476,17 @@ class _TabPerfilState extends State<TabPerfil>
                 Stack(
                   children: [
                     CircleAvatar(
+                      key: ValueKey(_fotoPerfilBase64), // Forzar reconstrucción
                       radius: 60,
                       backgroundColor: Coloresapp.colorPrimario,
                       backgroundImage:
-                          (_fotoPerfilUrl != null && _fotoPerfilUrl!.isNotEmpty)
-                          ? NetworkImage(_fotoPerfilUrl!)
+                          (_fotoPerfilBase64 != null &&
+                              _fotoPerfilBase64!.isNotEmpty)
+                          ? MemoryImage(base64Decode(_fotoPerfilBase64!))
                           : null,
-                      child: (_fotoPerfilUrl == null || _fotoPerfilUrl!.isEmpty)
+                      child:
+                          (_fotoPerfilBase64 == null ||
+                              _fotoPerfilBase64!.isEmpty)
                           ? const Icon(
                               Icons.person_rounded,
                               color: Colors.white,
@@ -540,7 +549,6 @@ class _TabPerfilState extends State<TabPerfil>
                   ),
                 ),
                 const SizedBox(height: 30),
-                // Estadisticas en tiempo real usando StreamBuilder
                 StreamBuilder<DocumentSnapshot>(
                   stream: _firestore
                       .collection('usuarios')
@@ -693,9 +701,7 @@ class _TabPerfilState extends State<TabPerfil>
   }
 }
 
-// Clases auxiliares _Petala, _PetalaPainterMultiple, _ItemMenuPerfil (sin cambios)
-// (Mantener las mismas que ya tenias, solo asegurar que _ItemMenuPerfil reciba onTap)
-
+// Clases auxiliares (sin cambios)
 class _Petala {
   double x = Random().nextDouble();
   double y = Random().nextDouble();

@@ -199,14 +199,9 @@ class _PaginaDetalleTierlistState extends State<PaginaDetalleTierlist> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          if (_currentUser != null && _currentUser!.uid == widget.ownerId)
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.red),
-              onPressed: _eliminarTierList,
-            ),
-          // Fila de likes (fuera del título para evitar overflow)
+          // Botón de like (ya existente)
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 8),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -239,6 +234,13 @@ class _PaginaDetalleTierlistState extends State<PaginaDetalleTierlist> {
               ],
             ),
           ),
+          // Botón de eliminar (solo para el propietario)
+          if (_currentUser != null && _currentUser!.uid == widget.ownerId)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              onPressed: _eliminarTierList,
+              tooltip: 'Eliminar tier list',
+            ),
         ],
       ),
       body: Column(
