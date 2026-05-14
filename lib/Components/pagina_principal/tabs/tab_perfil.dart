@@ -9,6 +9,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../../coloresapp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
 import 'package:ja_rating/Paginas/pagina_login.dart';
+import 'package:ja_rating/Paginas/pagina_perfil_ratings.dart';
 
 class TabPerfil extends StatefulWidget {
   const TabPerfil({super.key});
@@ -31,9 +32,10 @@ class _TabPerfilState extends State<TabPerfil>
   String _nombreUsuario = '';
   bool _cargandoDatos = true;
 
-  String _animesCalificados = '0';
-  String _comentarios = '0';
-  String _tierLists = '0';
+  int _totalRatings = 0;
+  int _totalComentarios = 0;
+  int _totalTierLists = 0;
+  int _totalFavoritos = 0;
   String _miembroDesde = '';
 
   @override
@@ -59,7 +61,6 @@ class _TabPerfilState extends State<TabPerfil>
     setState(() => _cargandoDatos = true);
     try {
       _usuarioActual = _auth.currentUser;
-
       if (_usuarioActual != null) {
         final docRef = _firestore.collection('usuarios').doc(_usuarioActual!.uid);
         final doc = await docRef.get();
@@ -72,16 +73,12 @@ class _TabPerfilState extends State<TabPerfil>
               'Usuario';
           _fotoPerfilUrl = data?['fotoPerfilUrl'];
           if (_fotoPerfilUrl == '') _fotoPerfilUrl = null;
-          _animesCalificados = (data?['animesCalificados'] ?? 0).toString();
-          _comentarios = (data?['comentarios'] ?? 0).toString();
-          _tierLists = (data?['tierLists'] ?? 0).toString();
           _miembroDesde = _formatearFecha(data?['fechaRegistro']);
         } else {
           _nombreUsuario = _usuarioActual?.displayName ??
               _usuarioActual?.email?.split('@')[0] ??
               'Usuario';
           _miembroDesde = _formatearFecha(DateTime.now().toIso8601String());
-
           await docRef.set({
             'uid': _usuarioActual!.uid,
             'email': _usuarioActual!.email,
@@ -93,6 +90,7 @@ class _TabPerfilState extends State<TabPerfil>
             'tierLists': 0,
           });
         }
+        await _cargarEstadisticas();
       }
     } catch (e) {
       print('Error al cargar datos: $e');
@@ -100,6 +98,19 @@ class _TabPerfilState extends State<TabPerfil>
     } finally {
       if (mounted) setState(() => _cargandoDatos = false);
     }
+  }
+
+  Future<void> _cargarEstadisticas() async {
+    final uid = _usuarioActual!.uid;
+    final ratings = await _firestore.collection('ratings').where('userId', isEqualTo: uid).get();
+    _totalRatings = ratings.docs.length;
+    final comentarios = await _firestore.collectionGroup('comentarios').where('autorId', isEqualTo: uid).get();
+    _totalComentarios = comentarios.docs.length;
+    final tierlists = await _firestore.collection('tierlists_comunidad').where('ownerId', isEqualTo: uid).get();
+    _totalTierLists = tierlists.docs.length;
+    final favoritos = await _firestore.collection('favoritos_foros').where('userId', isEqualTo: uid).get();
+    _totalFavoritos = favoritos.docs.length;
+    setState(() {});
   }
 
   String _formatearFecha(String? fechaIso) {
@@ -112,6 +123,7 @@ class _TabPerfilState extends State<TabPerfil>
     }
   }
 
+  // ========== FOTO DE PERFIL ==========
   void _mostrarOpcionesFoto() {
     showModalBottomSheet(
       context: context,
@@ -199,10 +211,7 @@ class _TabPerfilState extends State<TabPerfil>
         });
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Foto de perfil actualizada'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('Foto de perfil actualizada'), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
@@ -239,10 +248,7 @@ class _TabPerfilState extends State<TabPerfil>
           _usuarioActual = _auth.currentUser;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Foto de perfil eliminada'),
-            backgroundColor: Colors.orange,
-          ),
+          const SnackBar(content: Text('Foto de perfil eliminada'), backgroundColor: Colors.orange),
         );
       }
     } catch (e) {
@@ -255,6 +261,7 @@ class _TabPerfilState extends State<TabPerfil>
     }
   }
 
+  // ========== EDITAR NOMBRE ==========
   void _editarNombre() {
     final TextEditingController controller = TextEditingController(text: _nombreUsuario);
     showDialog(
@@ -314,10 +321,7 @@ class _TabPerfilState extends State<TabPerfil>
         if (mounted) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Este nombre de usuario ya está en uso'),
-              backgroundColor: Colors.orange,
-            ),
+            const SnackBar(content: Text('Este nombre de usuario ya está en uso'), backgroundColor: Colors.orange),
           );
         }
         return;
@@ -336,10 +340,7 @@ class _TabPerfilState extends State<TabPerfil>
         });
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Nombre actualizado correctamente'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('Nombre actualizado correctamente'), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
@@ -353,6 +354,7 @@ class _TabPerfilState extends State<TabPerfil>
     }
   }
 
+  // ========== CERRAR SESIÓN ==========
   Future<void> _cerrarSesion() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -383,6 +385,7 @@ class _TabPerfilState extends State<TabPerfil>
     }
   }
 
+  // ========== BUILD ==========
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -520,33 +523,57 @@ class _TabPerfilState extends State<TabPerfil>
                 const SizedBox(height: 30),
                 Row(
                   children: [
-                    _buildTarjetaEstadistica(_animesCalificados, 'Calificados'),
+                    _buildTarjetaEstadistica(_totalRatings.toString(), 'Calificados'),
                     const SizedBox(width: 12),
-                    _buildTarjetaEstadistica(_comentarios, 'Comentarios'),
+                    _buildTarjetaEstadistica(_totalComentarios.toString(), 'Comentarios'),
                     const SizedBox(width: 12),
-                    _buildTarjetaEstadistica(_tierLists, 'Tier Lists'),
+                    _buildTarjetaEstadistica(_totalTierLists.toString(), 'Tier Lists'),
                   ],
                 ),
                 const SizedBox(height: 40),
                 _ItemMenuPerfil(
                   icono: Icons.star_rounded,
                   etiqueta: 'Mis calificaciones',
-                  sub: '$_animesCalificados títulos calificados',
+                  sub: '$_totalRatings títulos calificados',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PaginaPerfilRatings(initialTab: 0)),
+                    );
+                  },
                 ),
                 _ItemMenuPerfil(
                   icono: Icons.chat_bubble_outline_rounded,
                   etiqueta: 'Mis comentarios',
-                  sub: '$_comentarios comentarios',
+                  sub: '$_totalComentarios comentarios',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PaginaPerfilRatings(initialTab: 1)),
+                    );
+                  },
                 ),
                 _ItemMenuPerfil(
                   icono: Icons.emoji_events_rounded,
                   etiqueta: 'Mis Tier Lists',
-                  sub: '$_tierLists listas creadas',
+                  sub: '$_totalTierLists listas creadas',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PaginaPerfilRatings(initialTab: 2)),
+                    );
+                  },
                 ),
                 _ItemMenuPerfil(
-                  icono: Icons.forum_rounded,
-                  etiqueta: 'Foros visitados',
-                  sub: 'Comunidad activa',
+                  icono: Icons.favorite_rounded,
+                  etiqueta: 'Foros favoritos',
+                  sub: '$_totalFavoritos foros guardados',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PaginaPerfilRatings(initialTab: 3)),
+                    );
+                  },
                 ),
                 const SizedBox(height: 30),
                 SizedBox(
@@ -609,6 +636,7 @@ class _TabPerfilState extends State<TabPerfil>
   }
 }
 
+// ========== PÉTALOS ANIMADOS ==========
 class _Petala {
   double x = Random().nextDouble();
   double y = Random().nextDouble();
@@ -630,10 +658,7 @@ class _PetalaPainterMultiple extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (var p in petalas) {
       double y = (p.y + tiempo * p.velocidadY) % 1.0;
-      double x = p.x +
-          sin(tiempo * p.velocidadX * 2 * pi + p.offsetOnda) *
-              p.amplitudOnda /
-              size.width;
+      double x = p.x + sin(tiempo * p.velocidadX * 2 * pi + p.offsetOnda) * p.amplitudOnda / size.width;
       x = x % 1.0;
       double rot = p.rotacion + tiempo * p.velocidadRotacion * 2 * pi;
 
@@ -674,16 +699,18 @@ class _ItemMenuPerfil extends StatelessWidget {
   final IconData icono;
   final String etiqueta;
   final String sub;
+  final VoidCallback? onTap;
   const _ItemMenuPerfil({
     required this.icono,
     required this.etiqueta,
     required this.sub,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
