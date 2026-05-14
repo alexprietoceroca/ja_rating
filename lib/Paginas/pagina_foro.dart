@@ -1,4 +1,3 @@
-// pagina_foro.dart
 // lib/Paginas/pagina_foro.dart
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -7,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:ja_rating/coloresapp.dart';
 import 'package:ja_rating/Components/Login/texto_normal.dart';
-import 'package:ja_rating/Components/Login/texto_titulo.dart';
 
 class PaginaForo extends StatefulWidget {
   const PaginaForo({super.key});
@@ -74,11 +72,8 @@ class _PaginaForoState extends State<PaginaForo>
         int scoreB = (b['respuestas'] as int) + ((b['vistas'] as int) ~/ 100);
         return scoreB.compareTo(scoreA);
       });
-
-      if (_forosPopulares.length > 10) {
+      if (_forosPopulares.length > 10)
         _forosPopulares = _forosPopulares.sublist(0, 10);
-      }
-
       _forosCategoria = List.from(_forosRecientes);
     } catch (e) {
       print('Error al cargar foros: $e');
@@ -95,7 +90,9 @@ class _PaginaForoState extends State<PaginaForo>
       if (_categoriaSeleccionada == 'Todo') {
         _forosCategoria = List.from(_forosRecientes);
       } else {
-        _forosCategoria = _forosRecientes.where((foro) => foro['categoria'] == _categoriaSeleccionada).toList();
+        _forosCategoria = _forosRecientes
+            .where((foro) => foro['categoria'] == _categoriaSeleccionada)
+            .toList();
       }
     });
   }
@@ -103,27 +100,22 @@ class _PaginaForoState extends State<PaginaForo>
   void _nuevoForo() {
     showDialog(
       context: context,
-      builder: (context) => _DialogNuevoForo(onCreate: (foro) async => await _guardarForo(foro)),
+      builder: (context) =>
+          _DialogNuevoForo(onCreate: (foro) async => await _guardarForo(foro)),
     );
   }
 
   Future<void> _guardarForo(Map<String, dynamic> foro) async {
     final user = _auth.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Debes iniciar sesión para crear un foro')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Debes iniciar sesión para crear un foro'),
+        ),
+      );
       return;
     }
     try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Debes iniciar sesión para crear un foro'),
-          ),
-        );
-        return;
-      }
-
       final nuevoForo = {
         'titulo': foro['titulo'],
         'categoria': foro['categoria'],
@@ -137,9 +129,10 @@ class _PaginaForoState extends State<PaginaForo>
         'destacado': false,
       };
       await _firestore.collection('foros').add(nuevoForo);
-
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foro creado exitosamente')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foro creado exitosamente')),
+        );
         _cargarForos();
       }
     } catch (e) {
@@ -150,6 +143,23 @@ class _PaginaForoState extends State<PaginaForo>
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
+  }
+
+  void _mostrarBuscador() {
+    showDialog(
+      context: context,
+      builder: (context) => _DialogBuscadorForos(
+        foros: _forosRecientes,
+        onTap: (foro) => _abrirForo(foro),
+      ),
+    );
+  }
+
+  void _abrirForo(Map<String, dynamic> foro) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => PaginaDetalleForo(foro: foro)),
+    ).then((_) => _cargarForos());
   }
 
   @override
@@ -163,16 +173,26 @@ class _PaginaForoState extends State<PaginaForo>
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Foros', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Foros',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.search, color: Colors.white), onPressed: () => _mostrarBuscador()),
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.white),
+            onPressed: _mostrarBuscador,
+          ),
         ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
-          tabs: const [Tab(text: 'Populares'), Tab(text: 'Recientes'), Tab(text: 'Categorías')],
+          tabs: const [
+            Tab(text: 'Populares'),
+            Tab(text: 'Recientes'),
+            Tab(text: 'Categorías'),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -185,14 +205,8 @@ class _PaginaForoState extends State<PaginaForo>
           : TabBarView(
               controller: _tabController,
               children: [
-                _ListaForos(
-                  foros: _forosPopulares,
-                  onTap: (foro) => _abrirForo(foro),
-                ),
-                _ListaForos(
-                  foros: _forosRecientes,
-                  onTap: (foro) => _abrirForo(foro),
-                ),
+                _ListaForos(foros: _forosPopulares, onTap: _abrirForo),
+                _ListaForos(foros: _forosRecientes, onTap: _abrirForo),
                 Column(
                   children: [
                     Container(
@@ -223,7 +237,7 @@ class _PaginaForoState extends State<PaginaForo>
                     Expanded(
                       child: _ListaForos(
                         foros: _forosCategoria,
-                        onTap: (foro) => _abrirForo(foro),
+                        onTap: _abrirForo,
                       ),
                     ),
                   ],
@@ -232,34 +246,26 @@ class _PaginaForoState extends State<PaginaForo>
             ),
     );
   }
-
-  void _mostrarBuscador() {
-    showDialog(
-      context: context,
-      builder: (context) => _DialogBuscadorForos(foros: _forosRecientes, onTap: (foro) => _abrirForo(foro)),
-    );
-  }
-
-  void _abrirForo(Map<String, dynamic> foro) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => PaginaDetalleForo(foro: foro)),
-    ).then((_) => _cargarForos());
-  }
 }
 
-// ====================== LISTA DE FOROS ======================
+// -------------------------------
+// LISTA DE FOROS
+// -------------------------------
 class _ListaForos extends StatelessWidget {
   final List<Map<String, dynamic>> foros;
   final Function(Map<String, dynamic>) onTap;
   const _ListaForos({required this.foros, required this.onTap});
   @override
   Widget build(BuildContext context) {
-    if (foros.isEmpty) return const Center(child: Text('No hay foros disponibles. ¡Crea el primero!'));
+    if (foros.isEmpty)
+      return const Center(
+        child: Text('No hay foros disponibles. ¡Crea el primero!'),
+      );
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: foros.length,
-      itemBuilder: (context, index) => _CardForo(foro: foros[index], onTap: () => onTap(foros[index])),
+      itemBuilder: (context, index) =>
+          _CardForo(foro: foros[index], onTap: () => onTap(foros[index])),
     );
   }
 }
@@ -300,19 +306,15 @@ class _CardForo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fecha = foro['fecha'] as DateTime;
-    final diferencia = DateTime.now().difference(fecha);
+    final diff = DateTime.now().difference(fecha);
     String fechaString;
-
-    if (diferencia.inDays > 0) {
+    if (diff.inDays > 0)
+      fechaString = 'Hace ${diff.inDays} día${diff.inDays > 1 ? 's' : ''}';
+    else if (diff.inHours > 0)
+      fechaString = 'Hace ${diff.inHours} hora${diff.inHours > 1 ? 's' : ''}';
+    else
       fechaString =
-          'Hace ${diferencia.inDays} día${diferencia.inDays > 1 ? 's' : ''}';
-    } else if (diferencia.inHours > 0) {
-      fechaString =
-          'Hace ${diferencia.inHours} hora${diferencia.inHours > 1 ? 's' : ''}';
-    } else {
-      fechaString =
-          'Hace ${diferencia.inMinutes} minuto${diferencia.inMinutes > 1 ? 's' : ''}';
-    }
+          'Hace ${diff.inMinutes} minuto${diff.inMinutes > 1 ? 's' : ''}';
 
     return GestureDetector(
       onTap: onTap,
@@ -377,7 +379,6 @@ class _CardForo extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: const Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           Icons.local_fire_department_rounded,
@@ -478,12 +479,16 @@ class _CardForo extends StatelessWidget {
   }
 }
 
-// ====================== DIÁLOGO NUEVO FORO ======================
+// -------------------------------
+// DIÁLOGO NUEVO FORO
+// -------------------------------
 class _DialogNuevoForo extends StatefulWidget {
   final Function(Map<String, dynamic>) onCreate;
   const _DialogNuevoForo({required this.onCreate});
-  @override State<_DialogNuevoForo> createState() => _DialogNuevoForoState();
+  @override
+  State<_DialogNuevoForo> createState() => _DialogNuevoForoState();
 }
+
 class _DialogNuevoForoState extends State<_DialogNuevoForo> {
   final _formKey = GlobalKey<FormState>();
   final _tituloCtrl = TextEditingController();
@@ -492,7 +497,14 @@ class _DialogNuevoForoState extends State<_DialogNuevoForo> {
   String _tipo = 'Debates';
   final _categorias = ['Anime', 'Manga', 'Manhwa', 'Donghua'];
   final _tipos = ['Debates', 'Noticias', 'Recomendaciones'];
-  @override void dispose() { _tituloCtrl.dispose(); _contenidoCtrl.dispose(); super.dispose(); }
+
+  @override
+  void dispose() {
+    _tituloCtrl.dispose();
+    _contenidoCtrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -504,17 +516,17 @@ class _DialogNuevoForoState extends State<_DialogNuevoForo> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
-                controller: _tituloController,
+                controller: _tituloCtrl,
                 decoration: const InputDecoration(
                   labelText: 'Título',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Ingresa un título' : null,
+                validator: (v) =>
+                    v?.isEmpty ?? true ? 'Ingresa un título' : null,
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: _categoria,
+                value: _categoria,
                 decoration: const InputDecoration(
                   labelText: 'Categoría',
                   border: OutlineInputBorder(),
@@ -524,34 +536,31 @@ class _DialogNuevoForoState extends State<_DialogNuevoForo> {
                       (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
                     )
                     .toList(),
-                onChanged: (value) => setState(() => _categoria = value!),
+                onChanged: (v) => setState(() => _categoria = v!),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: _tipo,
+                value: _tipo,
                 decoration: const InputDecoration(
                   labelText: 'Tipo',
                   border: OutlineInputBorder(),
                 ),
                 items: _tipos
-                    .map(
-                      (tipo) =>
-                          DropdownMenuItem(value: tipo, child: Text(tipo)),
-                    )
+                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                     .toList(),
-                onChanged: (value) => setState(() => _tipo = value!),
+                onChanged: (v) => setState(() => _tipo = v!),
               ),
               const SizedBox(height: 12),
               TextFormField(
-                controller: _contenidoController,
+                controller: _contenidoCtrl,
                 maxLines: 5,
                 decoration: const InputDecoration(
                   labelText: 'Contenido',
                   border: OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Ingresa el contenido' : null,
+                validator: (v) =>
+                    v?.isEmpty ?? true ? 'Ingresa el contenido' : null,
               ),
             ],
           ),
@@ -566,10 +575,10 @@ class _DialogNuevoForoState extends State<_DialogNuevoForo> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               widget.onCreate({
-                'titulo': _tituloController.text,
+                'titulo': _tituloCtrl.text,
                 'categoria': _categoria,
                 'tipo': _tipo,
-                'contenido': _contenidoController.text,
+                'contenido': _contenidoCtrl.text,
               });
               Navigator.pop(context);
             }
@@ -584,22 +593,29 @@ class _DialogNuevoForoState extends State<_DialogNuevoForo> {
   }
 }
 
-// ====================== BUSCADOR ======================
+// -------------------------------
+// BUSCADOR DE FOROS
+// -------------------------------
 class _DialogBuscadorForos extends StatefulWidget {
   final List<Map<String, dynamic>> foros;
   final Function(Map<String, dynamic>) onTap;
   const _DialogBuscadorForos({required this.foros, required this.onTap});
-  @override State<_DialogBuscadorForos> createState() => _DialogBuscadorForosState();
+  @override
+  State<_DialogBuscadorForos> createState() => _DialogBuscadorForosState();
 }
+
 class _DialogBuscadorForosState extends State<_DialogBuscadorForos> {
   String _busqueda = '';
 
-  List<Map<String, dynamic>> get _forosFiltrados {
+  List<Map<String, dynamic>> get _filtrados {
     if (_busqueda.isEmpty) return [];
-    return widget.foros.where((foro) {
-      return foro['titulo'].toLowerCase().contains(_busqueda.toLowerCase()) ||
-          foro['contenido'].toLowerCase().contains(_busqueda.toLowerCase());
-    }).toList();
+    return widget.foros
+        .where(
+          (f) =>
+              f['titulo'].toLowerCase().contains(_busqueda.toLowerCase()) ||
+              f['contenido'].toLowerCase().contains(_busqueda.toLowerCase()),
+        )
+        .toList();
   }
 
   @override
@@ -611,34 +627,39 @@ class _DialogBuscadorForosState extends State<_DialogBuscadorForos> {
         height: 400,
         child: Column(
           children: [
-            TextField(autofocus: true, decoration: const InputDecoration(hintText: 'Escribe tu búsqueda...', prefixIcon: Icon(Icons.search)), onChanged: (v) => setState(() => _busqueda = v)),
+            TextField(
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'Escribe tu búsqueda...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (v) => setState(() => _busqueda = v),
+            ),
             const SizedBox(height: 16),
             Expanded(
               child: _busqueda.isEmpty
                   ? const Center(child: Text('Escribe algo para buscar'))
-                  : _forosFiltrados.isEmpty
+                  : _filtrados.isEmpty
                   ? const Center(child: Text('No se encontraron resultados'))
                   : ListView.builder(
-                      itemCount: _forosFiltrados.length,
-                      itemBuilder: (context, index) {
-                        final foro = _forosFiltrados[index];
-                        return ListTile(
-                          title: Text(
-                            foro['titulo'],
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Text(
-                            foro['contenido'].length > 50
-                                ? '${foro['contenido'].substring(0, 50)}...'
-                                : foro['contenido'],
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            widget.onTap(foro);
-                          },
-                        );
-                      },
+                      itemCount: _filtrados.length,
+                      itemBuilder: (_, i) => ListTile(
+                        title: Text(
+                          _filtrados[i]['titulo'],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          _filtrados[i]['contenido'].length > 50
+                              ? '${_filtrados[i]['contenido'].substring(0, 50)}...'
+                              : _filtrados[i]['contenido'],
+                        ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          widget.onTap(_filtrados[i]);
+                        },
+                      ),
                     ),
             ),
           ],
@@ -654,12 +675,16 @@ class _DialogBuscadorForosState extends State<_DialogBuscadorForos> {
   }
 }
 
-// ====================== DETALLE DEL FORO (CON FAVORITO) ======================
+// -------------------------------
+// DETALLE DEL FORO (CON FAVORITOS)
+// -------------------------------
 class PaginaDetalleForo extends StatefulWidget {
   final Map<String, dynamic> foro;
   const PaginaDetalleForo({super.key, required this.foro});
-  @override State<PaginaDetalleForo> createState() => _PaginaDetalleForoState();
+  @override
+  State<PaginaDetalleForo> createState() => _PaginaDetalleForoState();
 }
+
 class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -674,6 +699,7 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
     super.initState();
     _incrementarVistas();
     _cargarComentarios();
+    _comprobarFavorito();
   }
 
   Future<void> _incrementarVistas() async {
@@ -681,8 +707,6 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
       if (widget.foro.containsKey('id')) {
         final docRef = _firestore.collection('foros').doc(widget.foro['id']);
         await docRef.update({'vistas': FieldValue.increment(1)});
-
-        // Registrar visita del usuario
         await _registrarVisitaForo(widget.foro['id']);
       }
     } catch (e) {
@@ -694,8 +718,7 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
     final user = _auth.currentUser;
     if (user == null) return;
     try {
-      final visitaRef = _firestore.collection('visitas_foros').doc();
-      await visitaRef.set({
+      await _firestore.collection('visitas_foros').add({
         'userId': user.uid,
         'foroId': foroId,
         'fecha': FieldValue.serverTimestamp(),
@@ -707,20 +730,51 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
 
   Future<void> _cargarComentarios() async {
     try {
-      final snap = await _firestore.collection('foros').doc(widget.foro['id']).collection('comentarios').orderBy('fecha', descending: false).get();
-      setState(() { _comentarios = snap.docs.map((d) => {'id': d.id, ...d.data(), 'fecha': (d.data()['fecha'] as Timestamp).toDate()}).toList(); _cargando = false; });
-    } catch (e) { setState(() => _cargando = false); }
+      final snap = await _firestore
+          .collection('foros')
+          .doc(widget.foro['id'])
+          .collection('comentarios')
+          .orderBy('fecha', descending: false)
+          .get();
+      setState(() {
+        _comentarios = snap.docs
+            .map(
+              (d) => {
+                'id': d.id,
+                ...d.data(),
+                'fecha': (d.data()['fecha'] as Timestamp).toDate(),
+              },
+            )
+            .toList();
+        _cargando = false;
+      });
+    } catch (e) {
+      setState(() => _cargando = false);
+    }
   }
+
   Future<void> _comprobarFavorito() async {
     final user = _auth.currentUser;
-    if (user == null) { setState(() => _cargandoFav = false); return; }
-    final doc = await _firestore.collection('favoritos_foros').doc('${user.uid}_${widget.foro['id']}').get();
-    setState(() { _esFavorito = doc.exists; _cargandoFav = false; });
+    if (user == null) {
+      setState(() => _cargandoFav = false);
+      return;
+    }
+    final doc = await _firestore
+        .collection('favoritos_foros')
+        .doc('${user.uid}_${widget.foro['id']}')
+        .get();
+    setState(() {
+      _esFavorito = doc.exists;
+      _cargandoFav = false;
+    });
   }
+
   Future<void> _toggleFavorito() async {
     final user = _auth.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inicia sesión para guardar favoritos')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inicia sesión para guardar favoritos')),
+      );
       return;
     }
     final docId = '${user.uid}_${widget.foro['id']}';
@@ -728,46 +782,65 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
     if (_esFavorito) {
       await ref.delete();
       setState(() => _esFavorito = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foro eliminado de favoritos')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foro eliminado de favoritos')),
+      );
     } else {
-      await ref.set({ 'userId': user.uid, 'foroId': widget.foro['id'], 'fecha': DateTime.now() });
+      await ref.set({
+        'userId': user.uid,
+        'foroId': widget.foro['id'],
+        'fecha': DateTime.now(),
+      });
       setState(() => _esFavorito = true);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foro añadido a favoritos')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Foro añadido a favoritos')));
     }
   }
+
   Future<void> _agregarComentario() async {
     if (_comentarioCtrl.text.trim().isEmpty) return;
     final user = _auth.currentUser;
-    if (user == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inicia sesión para comentar'))); return; }
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inicia sesión para comentar')),
+      );
+      return;
+    }
     try {
-      await _firestore.collection('foros').doc(widget.foro['id']).collection('comentarios').add({
-        'autor': user.displayName ?? user.email?.split('@')[0] ?? 'Usuario',
-        'autorId': user.uid,
-        'contenido': _comentarioCtrl.text.trim(),
-        'fecha': DateTime.now(),
+      await _firestore
+          .collection('foros')
+          .doc(widget.foro['id'])
+          .collection('comentarios')
+          .add({
+            'autor': user.displayName ?? user.email?.split('@')[0] ?? 'Usuario',
+            'autorId': user.uid,
+            'contenido': _comentarioCtrl.text.trim(),
+            'fecha': DateTime.now(),
+          });
+      await _firestore.collection('foros').doc(widget.foro['id']).update({
+        'respuestas': FieldValue.increment(1),
       });
-      await _firestore.collection('foros').doc(widget.foro['id']).update({'respuestas': FieldValue.increment(1)});
       _comentarioCtrl.clear();
       await _cargarComentarios();
-
-      if (mounted) {
+      if (mounted)
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Comentario agregado')));
-      }
     } catch (e) {
       print('Error al agregar comentario: $e');
-      if (mounted) {
+      if (mounted)
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final fecha = widget.foro['fecha'] as DateTime;
     final formatter = DateFormat('dd/MM/yyyy HH:mm');
+
     return Scaffold(
       backgroundColor: Coloresapp.colorFondo,
       appBar: AppBar(
@@ -780,6 +853,17 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
           widget.foro['titulo'],
           style: const TextStyle(color: Colors.white, fontSize: 16),
         ),
+        actions: [
+          if (!_cargandoFav)
+            IconButton(
+              icon: Icon(
+                _esFavorito ? Icons.favorite : Icons.favorite_border,
+                color: Colors.white,
+              ),
+              onPressed: _toggleFavorito,
+              tooltip: 'Favorito',
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -921,9 +1005,7 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
                       ),
                     )
                   else
-                    ..._comentarios.map(
-                      (comentario) => _ComentarioCard(comentario: comentario),
-                    ),
+                    ..._comentarios.map((c) => _ComentarioCard(comentario: c)),
                 ],
               ),
             ),
@@ -944,7 +1026,7 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
               children: [
                 Expanded(
                   child: TextField(
-                    controller: _comentarioController,
+                    controller: _comentarioCtrl,
                     decoration: InputDecoration(
                       hintText: 'Escribe un comentario...',
                       border: OutlineInputBorder(
@@ -978,12 +1060,15 @@ class _PaginaDetalleForoState extends State<PaginaDetalleForo> {
     );
   }
 }
+
 class _ComentarioCard extends StatelessWidget {
   final Map<String, dynamic> comentario;
   const _ComentarioCard({required this.comentario});
+
   @override
   Widget build(BuildContext context) {
     final fecha = comentario['fecha'] as DateTime;
+    final formatter = DateFormat('dd/MM/yyyy HH:mm');
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
